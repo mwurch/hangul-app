@@ -151,7 +151,7 @@ This test must pass before any merge touching `hangul.ts`.
 | `JamoKeyboard` | ✅ | Mini keyboard grid of tappable jamo characters for the Syllable Builder. |
 | `QuizCard` | ✅ | Full-screen card: large glyph + 4-button choice grid. Animates on answer. |
 | `QuizSummary` | ✅ | End-of-quiz score view: score, percentage, tiered encouragement, retry/done actions. |
-| `ProgressRing` | ⬜ | Circular indicator: learned / total for a module. |
+| `ProgressRing` | ✅ | Circular indicator: learned / total for a module. SVG ring via react-native-svg. |
 
 ---
 
@@ -192,7 +192,7 @@ Uses the **SM-2 algorithm**. After each quiz answer, update `interval` and `ease
 | 3 | Audio: recordings bundled, expo-av integration, AudioButton — **DONE** (placeholder MP3s; real recordings needed before ship) |
 | 4 | Build tab: SlotBuilder, mini 자모 keyboard, composition formula, live result — **DONE** |
 | 5 | Quiz tab: QuizCard, 20-question flow, feedback animation, score summary — **DONE** (SM-2 wiring deferred to Phase 6; feedback animation uses built-in RN Animated, not Reanimated) |
-| 6 | Progress & SRS: Progress tab UI, streak, SM-2 wired to quiz, review queue |
+| 6 | Progress & SRS: Progress tab UI, streak, SM-2 wired to quiz, review queue — **DONE** (learned = 3+ correct answers; SM-2 store updates persist to AsyncStorage on every quiz answer) |
 | 7 | Polish: onboarding, haptics, dark mode, accessibility audit, performance |
 | 8 | Ship: store assets, EAS Build, App Review submission, 2.99€ pricing |
 

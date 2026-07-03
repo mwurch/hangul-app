@@ -13,6 +13,7 @@ import { ALL_JAMO } from '../../src/data/jamo';
 import { QuizCard } from '../../src/components/QuizCard';
 import { QuizSummary } from '../../src/components/QuizSummary';
 import { useQuizStore, type QuizQuestion } from '../../src/store/quiz.store';
+import { useProgressStore } from '../../src/store/progress.store';
 import {
   QUIZ_LENGTH,
   generateQuizQuestions,
@@ -87,6 +88,7 @@ export default function QuizScreen(): React.JSX.Element {
   const answerQuestion = useQuizStore((state) => state.answerQuestion);
   const nextQuestion = useQuizStore((state) => state.nextQuestion);
   const resetQuiz = useQuizStore((state) => state.resetQuiz);
+  const updateProgress = useProgressStore((state) => state.updateProgress);
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -119,6 +121,7 @@ export default function QuizScreen(): React.JSX.Element {
       setSelectedAnswer(answer);
       answerQuestion(answer);
       const isCorrect = answer === currentQuestion.correctAnswer;
+      updateProgress(currentQuestion.char, isCorrect);
       AccessibilityInfo.announceForAccessibility(
         isCorrect
           ? 'Correct'
@@ -130,7 +133,7 @@ export default function QuizScreen(): React.JSX.Element {
         nextQuestion();
       }, FEEDBACK_DELAY_MS);
     },
-    [selectedAnswer, currentQuestion, answerQuestion, nextQuestion],
+    [selectedAnswer, currentQuestion, answerQuestion, updateProgress, nextQuestion],
   );
   const isShowingFeedback = selectedAnswer !== null;
   const isSummaryVisible = isComplete && !isShowingFeedback;
