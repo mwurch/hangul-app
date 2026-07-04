@@ -5,11 +5,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../src/theme/colors';
 import { ProgressRing } from '../../src/components/ProgressRing';
 import { CONSONANTS, VOWELS, ALL_JAMO, type Jamo } from '../../src/data/jamo';
-import { useProgressStore } from '../../src/store/progress.store';
+import { LESSONS, type Lesson } from '../../src/data/lessons';
+import { useProgressStore, type JamoProgress } from '../../src/store/progress.store';
 import { countLearned, getReviewQueue } from '../../src/utils/progressStats';
+import {
+  LESSON_COMPLETE_THRESHOLD,
+  getUnlockedLessonIds,
+  isLessonComplete,
+} from '../../src/utils/lessonProgress';
 
 const MAX_VISIBLE_REVIEW_ROWS = 10;
 const REVIEW_GLYPH_SIZE = 28;
+const LESSON_CHARS_GLYPH_SIZE = 16;
+const LESSON_CHAR_SEPARATOR = ' ';
 const STREAK_UNIT = '일';
 const CONSONANT_CHARS: readonly string[] = CONSONANTS.map((jamo) => jamo.char);
 const VOWEL_CHARS: readonly string[] = VOWELS.map((jamo) => jamo.char);
@@ -152,6 +160,143 @@ function ReviewQueueSection({ queue, isDark }: ReviewQueueSectionProps): React.J
   );
 }
 
+type ProgressMap = Readonly<Record<string, JamoProgress>>;
+
+type LessonStatus =
+  | { readonly kind: 'complete' }
+  | { readonly kind: 'unlocked'; readonly correctChars: number }
+  | { readonly kind: 'locked' };
+
+interface LessonWithStatus {
+  readonly lesson: Lesson;
+  readonly status: LessonStatus;
+}
+
+function countCorrectChars(lesson: Lesson, progress: ProgressMap): number {
+  return lesson.chars.filter((char) => {
+    const entry = progress[char];
+    return entry !== undefined && entry.correctCount >= LESSON_COMPLETE_THRESHOLD;
+  }).length;
+}
+
+function deriveLessonStatus(
+  lesson: Lesson,
+  unlockedIds: ReadonlySet<number>,
+  progress: ProgressMap,
+): LessonStatus {
+  if (isLessonComplete(lesson, progress)) {
+    return { kind: 'complete' };
+  }
+  if (unlockedIds.has(lesson.id)) {
+    return { kind: 'unlocked', correctChars: countCorrectChars(lesson, progress) };
+  }
+  return { kind: 'locked' };
+}
+
+function getLessonStatuses(progress: ProgressMap): readonly LessonWithStatus[] {
+  const unlockedIds = new Set(getUnlockedLessonIds(progress));
+  return LESSONS.map((lesson) => ({
+    lesson,
+    status: deriveLessonStatus(lesson, unlockedIds, progress),
+  }));
+}
+
+function describeLessonForAccessibility(lesson: Lesson, status: LessonStatus): string {
+  const base = `Lesson ${lesson.id}, ${lesson.koreanTitle}`;
+  if (status.kind === 'complete') {
+    return `${base}, completed`;
+  }
+  if (status.kind === 'unlocked') {
+    return `${base}, ${status.correctChars} of ${lesson.chars.length} correct`;
+  }
+  return `${base}, locked`;
+}
+
+interface LessonStatusBadgeProps {
+  readonly status: LessonStatus;
+  readonly total: number;
+  readonly isDark: boolean;
+}
+
+function LessonStatusBadge({ status, total, isDark }: LessonStatusBadgeProps): React.JSX.Element {
+  if (status.kind === 'complete') {
+    return <Text style={[styles.lessonStatus, { color: COLORS.teal }]}>✓ 완료</Text>;
+  }
+  if (status.kind === 'unlocked') {
+    return (
+      <Text
+        style={[
+          styles.lessonStatus,
+          { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
+        ]}
+      >
+        {`${status.correctChars}/${total}`}
+      </Text>
+    );
+  }
+  return <Text style={[styles.lessonStatus, { color: COLORS.mutedText }]}>🔒</Text>;
+}
+
+interface LessonRowProps {
+  readonly lesson: Lesson;
+  readonly status: LessonStatus;
+  readonly isDark: boolean;
+}
+
+function LessonRow({ lesson, status, isDark }: LessonRowProps): React.JSX.Element {
+  const isLocked = status.kind === 'locked';
+  const activeColor = isDark ? COLORS.darkText : COLORS.lightText;
+  const labelColor = isLocked ? COLORS.mutedText : activeColor;
+
+  return (
+    <View
+      style={[
+        styles.lessonRow,
+        { borderBottomColor: isDark ? COLORS.darkBorder : COLORS.lightBorder },
+      ]}
+      accessible
+      accessibilityLabel={describeLessonForAccessibility(lesson, status)}
+    >
+      <View style={styles.lessonTextColumn}>
+        <Text style={[styles.lessonLabel, { color: labelColor }]}>
+          {`Lesson ${lesson.id} · ${lesson.koreanTitle}`}
+        </Text>
+        <Text style={[styles.lessonChars, { color: labelColor }]}>
+          {lesson.chars.join(LESSON_CHAR_SEPARATOR)}
+        </Text>
+      </View>
+      <LessonStatusBadge status={status} total={lesson.chars.length} isDark={isDark} />
+    </View>
+  );
+}
+
+interface LessonsSectionProps {
+  readonly lessons: readonly LessonWithStatus[];
+  readonly isDark: boolean;
+}
+
+function LessonsSection({ lessons, isDark }: LessonsSectionProps): React.JSX.Element {
+  return (
+    <View style={styles.section}>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: isDark ? COLORS.darkText : COLORS.lightText },
+        ]}
+        accessibilityRole="header"
+      >
+        레슨
+      </Text>
+      <Text style={[styles.sectionSubtitle, { color: COLORS.mutedText }]}>
+        Lessons
+      </Text>
+      {lessons.map(({ lesson, status }) => (
+        <LessonRow key={lesson.id} lesson={lesson} status={status} isDark={isDark} />
+      ))}
+    </View>
+  );
+}
+
 export default function ProgressScreen(): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
@@ -175,6 +320,7 @@ export default function ProgressScreen(): React.JSX.Element {
     () => getReviewQueue(progress, ALL_JAMO, reviewTimestamp),
     [progress, reviewTimestamp],
   );
+  const lessonStatuses = useMemo(() => getLessonStatuses(progress), [progress]);
 
   return (
     <ScrollView
@@ -206,6 +352,8 @@ export default function ProgressScreen(): React.JSX.Element {
       </Text>
 
       <StreakCard streak={streak} isDark={isDark} />
+
+      <LessonsSection lessons={lessonStatuses} isDark={isDark} />
 
       <View style={styles.ringsRow}>
         <ProgressRing
@@ -332,5 +480,30 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     paddingTop: 10,
+  },
+  lessonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  lessonTextColumn: {
+    flex: 1,
+  },
+  lessonLabel: {
+    fontSize: 15,
+    fontFamily: 'NotoSansKR-Regular',
+    fontWeight: '500',
+  },
+  lessonChars: {
+    fontSize: LESSON_CHARS_GLYPH_SIZE,
+    fontFamily: 'NotoSansKR-Regular',
+    marginTop: 2,
+  },
+  lessonStatus: {
+    fontSize: 15,
+    fontFamily: 'NotoSansKR-Regular',
+    fontWeight: '700',
   },
 });

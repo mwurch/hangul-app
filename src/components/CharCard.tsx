@@ -6,12 +6,19 @@ interface CharCardProps {
   readonly jamo: Jamo;
   readonly hasProgress: boolean;
   readonly onPress: (jamo: Jamo) => void;
+  readonly isLocked?: boolean;
 }
 
 const GLYPH_SIZE = 32;
 const CARD_SIZE = 80;
+const LOCKED_CONTENT_OPACITY = 0.35;
 
-export function CharCard({ jamo, hasProgress, onPress }: CharCardProps): React.JSX.Element {
+export function CharCard({
+  jamo,
+  hasProgress,
+  onPress,
+  isLocked = false,
+}: CharCardProps): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
 
   return (
@@ -26,12 +33,18 @@ export function CharCard({ jamo, hasProgress, onPress }: CharCardProps): React.J
         },
       ]}
       accessibilityRole="button"
-      accessibilityLabel={`${jamo.koreanName}, romanized ${jamo.romanization}${hasProgress ? ', studied' : ''}`}
+      accessibilityState={isLocked ? { disabled: true } : undefined}
+      accessibilityLabel={
+        isLocked
+          ? `${jamo.koreanName}, locked`
+          : `${jamo.koreanName}, romanized ${jamo.romanization}${hasProgress ? ', studied' : ''}`
+      }
     >
       <Text
         style={[
           styles.glyph,
           { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
+          isLocked && styles.lockedContent,
         ]}
       >
         {jamo.char}
@@ -40,11 +53,18 @@ export function CharCard({ jamo, hasProgress, onPress }: CharCardProps): React.J
         style={[
           styles.romanization,
           { color: isDark ? COLORS.mutedText : COLORS.lightText },
+          isLocked && styles.lockedContent,
         ]}
       >
         {jamo.romanization}
       </Text>
-      {hasProgress && <View style={styles.progressDot} />}
+      {isLocked ? (
+        <Text style={styles.lockIndicator} accessibilityElementsHidden>
+          🔒
+        </Text>
+      ) : (
+        hasProgress && <View style={styles.progressDot} />
+      )}
     </Pressable>
   );
 }
@@ -76,5 +96,14 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: COLORS.teal,
+  },
+  lockedContent: {
+    opacity: LOCKED_CONTENT_OPACITY,
+  },
+  lockIndicator: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    fontSize: 10,
   },
 });

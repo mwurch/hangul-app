@@ -1,9 +1,14 @@
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../src/theme/colors';
 import { type Jamo, ALL_JAMO, CONSONANTS, VOWELS } from '../../src/data/jamo';
 import { useProgressStore } from '../../src/store/progress.store';
+import {
+  getCurrentLesson,
+  getLessonForChar,
+  getUnlockedChars,
+} from '../../src/utils/lessonProgress';
 import { CharCard } from '../../src/components/CharCard';
 import { FilterTabs, type JamoFilter } from '../../src/components/FilterTabs';
 import { JamoDetailPanel } from '../../src/components/JamoDetailPanel';
@@ -32,19 +37,40 @@ function getFilterLabel(filter: JamoFilter): string {
   }
 }
 
+function showLockedAlert(char: string): void {
+  const lesson = getLessonForChar(char);
+  if (lesson === undefined) {
+    return;
+  }
+  Alert.alert(
+    '🔒 잠김',
+    `Lesson ${lesson.id} (${lesson.koreanTitle})을 완료하면 열려요\nComplete Lesson ${lesson.id} to unlock`,
+  );
+}
+
 export default function StudyScreen(): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const getProgress = useProgressStore((s) => s.getProgress);
+  const progress = useProgressStore((s) => s.progress);
 
   const [filter, setFilter] = useState<JamoFilter>('all');
   const [selectedJamo, setSelectedJamo] = useState<Jamo | null>(null);
 
   const filteredJamo = useMemo(() => getFilteredJamo(filter), [filter]);
+  const unlockedChars = useMemo(() => getUnlockedChars(progress), [progress]);
+  const currentLesson = useMemo(() => getCurrentLesson(progress), [progress]);
 
-  const handleCardPress = useCallback((jamo: Jamo) => {
-    setSelectedJamo(jamo);
-  }, []);
+  const handleCardPress = useCallback(
+    (jamo: Jamo) => {
+      if (!unlockedChars.has(jamo.char)) {
+        showLockedAlert(jamo.char);
+        return;
+      }
+      setSelectedJamo(jamo);
+    },
+    [unlockedChars],
+  );
 
   const handleCloseDetail = useCallback(() => {
     setSelectedJamo(null);
@@ -56,9 +82,10 @@ export default function StudyScreen(): React.JSX.Element {
         jamo={item}
         hasProgress={getProgress(item.char) !== undefined}
         onPress={handleCardPress}
+        isLocked={!unlockedChars.has(item.char)}
       />
     ),
-    [getProgress, handleCardPress],
+    [getProgress, handleCardPress, unlockedChars],
   );
 
   const keyExtractor = useCallback((item: Jamo) => item.char, []);
@@ -84,7 +111,7 @@ export default function StudyScreen(): React.JSX.Element {
           자모 학습
         </Text>
         <Text style={[styles.subtitle, { color: COLORS.mutedText }]}>
-          {getFilterLabel(filter)}
+          {`${getFilterLabel(filter)} · Lesson ${currentLesson.id} · ${unlockedChars.size}/${ALL_JAMO.length} unlocked`}
         </Text>
       </View>
 
