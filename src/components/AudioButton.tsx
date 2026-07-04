@@ -18,6 +18,9 @@ const BUTTON_SIZE = {
   large: 48,
 } as const;
 
+/** Minimum touch target per accessibility guidelines. */
+const MIN_TOUCH_TARGET = 44;
+
 export function AudioButton({
   onPress,
   isPlaying,
@@ -33,11 +36,13 @@ export function AudioButton({
       : COLORS.primaryBlue;
 
   const borderColor = isDark ? COLORS.darkBorder : COLORS.lightBorder;
+  const hitSlop = Math.max(0, (MIN_TOUCH_TARGET - BUTTON_SIZE[size]) / 2);
 
   return (
     <Pressable
       onPress={onPress}
       disabled={isPlaying}
+      hitSlop={hitSlop}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: isPlaying }}

@@ -8,6 +8,7 @@ export const COLORS = {
 
   // Surfaces
   lightBackground: '#FFFFFF',
+  lightSurface: '#F0F0F0',
   darkBackground: '#121212',
   darkSurface: '#1E1E1E',
 

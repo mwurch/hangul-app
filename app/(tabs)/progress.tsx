@@ -122,6 +122,7 @@ function ReviewQueueSection({ queue, isDark }: ReviewQueueSectionProps): React.J
           styles.sectionTitle,
           { color: isDark ? COLORS.darkText : COLORS.lightText },
         ]}
+        accessibilityRole="header"
       >
         복습 대기열
       </Text>

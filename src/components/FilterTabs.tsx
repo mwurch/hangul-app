@@ -14,6 +14,9 @@ const TABS: readonly { readonly key: JamoFilter; readonly label: string }[] = [
   { key: 'vowel', label: '모음' },
 ] as const;
 
+/** Rendered tab height is ~36pt; extend the touch target to >= 44pt. */
+const TAB_HIT_SLOP = { top: 4, bottom: 4 } as const;
+
 export function FilterTabs({ activeFilter, onFilterChange }: FilterTabsProps): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
 
@@ -25,12 +28,13 @@ export function FilterTabs({ activeFilter, onFilterChange }: FilterTabsProps): R
           <Pressable
             key={key}
             onPress={() => onFilterChange(key)}
+            hitSlop={TAB_HIT_SLOP}
             style={[
               styles.tab,
               isActive
                 ? styles.activeTab
                 : {
-                    backgroundColor: isDark ? COLORS.darkSurface : '#F5F5F5',
+                    backgroundColor: isDark ? COLORS.darkSurface : COLORS.lightSurface,
                   },
             ]}
             accessibilityRole="tab"
@@ -76,7 +80,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   activeTabText: {
-    color: '#FFFFFF',
+    color: COLORS.lightBackground,
     fontWeight: '600',
   },
 });

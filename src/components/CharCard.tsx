@@ -26,7 +26,7 @@ export function CharCard({ jamo, hasProgress, onPress }: CharCardProps): React.J
         },
       ]}
       accessibilityRole="button"
-      accessibilityLabel={`${jamo.koreanName}, romanized ${jamo.romanization}`}
+      accessibilityLabel={`${jamo.koreanName}, romanized ${jamo.romanization}${hasProgress ? ', studied' : ''}`}
     >
       <Text
         style={[
