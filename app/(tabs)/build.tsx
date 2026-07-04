@@ -1,9 +1,11 @@
+import { useEffect, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../src/theme/colors';
 import { SlotBox } from '../../src/components/SlotBox';
 import { JamoKeyboard } from '../../src/components/JamoKeyboard';
 import { useSyllableBuilder, type BuilderSlot } from '../../src/hooks/useSyllableBuilder';
+import { hapticCompose } from '../../src/utils/haptics';
 
 const SLOT_LABELS: Readonly<Record<BuilderSlot, string>> = {
   initial: '초성',
@@ -17,6 +19,15 @@ export default function BuildScreen(): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const { state, setSlot, clearSlot, focusSlot, reset, availableChars } = useSyllableBuilder();
+  const previousSyllableRef = useRef<string | null>(state.composedSyllable);
+
+  useEffect(() => {
+    const previousSyllable = previousSyllableRef.current;
+    previousSyllableRef.current = state.composedSyllable;
+    if (state.composedSyllable !== null && state.composedSyllable !== previousSyllable) {
+      hapticCompose();
+    }
+  }, [state.composedSyllable]);
 
   const handleSelect = (char: string): void => {
     setSlot(state.activeSlot, char);
@@ -38,6 +49,7 @@ export default function BuildScreen(): React.JSX.Element {
           styles.title,
           { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
         ]}
+        accessibilityRole="header"
       >
         음절 조합
       </Text>
@@ -59,7 +71,13 @@ export default function BuildScreen(): React.JSX.Element {
           onPress={() => focusSlot('initial')}
           onClear={() => clearSlot('initial')}
         />
-        <Text style={styles.plusSign}>+</Text>
+        <Text
+          style={styles.plusSign}
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+        >
+          +
+        </Text>
         <SlotBox
           label={SLOT_LABELS.vowel}
           value={state.vowel}
@@ -67,7 +85,13 @@ export default function BuildScreen(): React.JSX.Element {
           onPress={() => focusSlot('vowel')}
           onClear={() => clearSlot('vowel')}
         />
-        <Text style={styles.plusSign}>+</Text>
+        <Text
+          style={styles.plusSign}
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+        >
+          +
+        </Text>
         <SlotBox
           label={SLOT_LABELS.final}
           value={state.final}
@@ -83,7 +107,7 @@ export default function BuildScreen(): React.JSX.Element {
         style={[
           styles.resultContainer,
           {
-            backgroundColor: isDark ? COLORS.darkSurface : '#F8F9FA',
+            backgroundColor: isDark ? COLORS.darkSurface : COLORS.lightSurface,
             borderColor: state.composedSyllable !== null
               ? COLORS.teal
               : isDark ? COLORS.darkBorder : COLORS.lightBorder,
@@ -97,6 +121,7 @@ export default function BuildScreen(): React.JSX.Element {
               { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
             ]}
             accessibilityLabel={`Composed syllable: ${state.composedSyllable}`}
+            accessibilityLiveRegion="polite"
           >
             {state.composedSyllable}
           </Text>
@@ -118,7 +143,7 @@ export default function BuildScreen(): React.JSX.Element {
         style={({ pressed }) => [
           styles.resetButton,
           {
-            backgroundColor: isDark ? COLORS.darkSurface : '#F0F0F0',
+            backgroundColor: isDark ? COLORS.darkSurface : COLORS.lightSurface,
             opacity: pressed ? 0.6 : 1,
           },
         ]}
@@ -175,7 +200,7 @@ const styles = StyleSheet.create({
   },
   plusSign: {
     fontSize: 24,
-    color: '#999999',
+    color: COLORS.mutedText,
     fontWeight: '300',
   },
   resultContainer: {

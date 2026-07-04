@@ -9,6 +9,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
+import { hapticTap } from '../utils/haptics';
 
 interface JamoKeyboardProps {
   readonly characters: readonly string[];
@@ -21,6 +22,9 @@ const MAX_KEY_SIZE = 44;
 const KEY_GAP = 8;
 const NUM_COLUMNS = 7;
 const GLYPH_SIZE = 24;
+
+/** Minimum touch target per accessibility guidelines. */
+const MIN_TOUCH_TARGET = 44;
 
 /** Key size that fits NUM_COLUMNS keys plus gaps into the measured width. */
 function calculateKeySize(availableWidth: number): number {
@@ -44,18 +48,23 @@ function JamoKey({
   readonly size: number;
 }): React.JSX.Element {
   const handlePress = useCallback(() => {
+    hapticTap();
     onPress(char);
   }, [char, onPress]);
+
+  // Keys can compute smaller than 44pt on narrow screens; hitSlop compensates.
+  const hitSlop = Math.max(0, (MIN_TOUCH_TARGET - size) / 2);
 
   return (
     <Pressable
       onPress={handlePress}
+      hitSlop={hitSlop}
       style={({ pressed }) => [
         styles.key,
         {
           width: size,
           height: size,
-          backgroundColor: isDark ? COLORS.darkSurface : '#F0F0F0',
+          backgroundColor: isDark ? COLORS.darkSurface : COLORS.lightSurface,
           opacity: pressed ? 0.6 : 1,
         },
       ]}

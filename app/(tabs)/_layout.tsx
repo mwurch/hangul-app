@@ -1,13 +1,6 @@
 import { type ColorValue, StyleSheet, Text, useColorScheme } from 'react-native';
 import { Tabs } from 'expo-router';
-
-const COLORS = {
-  activeTab: '#1A3F7A',
-  inactiveTab: '#999999',
-  lightBackground: '#FFFFFF',
-  darkBackground: '#121212',
-  darkSurface: '#1E1E1E',
-} as const;
+import { COLORS } from '../../src/theme/colors';
 
 interface TabIconProps {
   readonly label: string;
@@ -15,7 +8,15 @@ interface TabIconProps {
 }
 
 function TabIcon({ label, color }: TabIconProps): React.JSX.Element {
-  return <Text style={[styles.tabIcon, { color }]}>{label}</Text>;
+  return (
+    <Text
+      style={[styles.tabIcon, { color }]}
+      accessibilityElementsHidden
+      importantForAccessibility="no"
+    >
+      {label}
+    </Text>
+  );
 }
 
 export default function TabLayout(): React.JSX.Element {
@@ -26,11 +27,11 @@ export default function TabLayout(): React.JSX.Element {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.activeTab,
-        tabBarInactiveTintColor: COLORS.inactiveTab,
+        tabBarActiveTintColor: isDark ? COLORS.darkText : COLORS.primaryBlue,
+        tabBarInactiveTintColor: COLORS.mutedText,
         tabBarStyle: {
           backgroundColor: isDark ? COLORS.darkSurface : COLORS.lightBackground,
-          borderTopColor: isDark ? '#333333' : '#E0E0E0',
+          borderTopColor: isDark ? COLORS.darkBorder : COLORS.lightBorder,
           borderTopWidth: StyleSheet.hairlineWidth,
           paddingTop: 6,
           paddingBottom: 6,

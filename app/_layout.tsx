@@ -1,16 +1,35 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View, useColorScheme } from 'react-native';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { OnboardingSlides } from '../src/components/OnboardingSlides';
+import { useSettingsStore } from '../src/store/settings.store';
+import { COLORS } from '../src/theme/colors';
 
-const COLORS = {
-  primaryBlue: '#1A3F7A',
-  teal: '#0F6E56',
-  lightBackground: '#FFFFFF',
-  darkBackground: '#121212',
-} as const;
+/**
+ * Tracks zustand persist rehydration for the settings store so the layout
+ * can wait for the stored onboarding flag before choosing what to render.
+ */
+function useSettingsHydration(): boolean {
+  const [isHydrated, setIsHydrated] = useState(
+    useSettingsStore.persist.hasHydrated(),
+  );
+
+  useEffect(() => {
+    const unsubscribe = useSettingsStore.persist.onFinishHydration(() => {
+      setIsHydrated(true);
+    });
+    // Hydration may have finished between the initial read and subscribing.
+    if (useSettingsStore.persist.hasHydrated()) {
+      setIsHydrated(true);
+    }
+    return unsubscribe;
+  }, []);
+
+  return isHydrated;
+}
 
 export default function RootLayout(): React.JSX.Element {
   const colorScheme = useColorScheme();
@@ -20,13 +39,18 @@ export default function RootLayout(): React.JSX.Element {
     'NotoSansKR-Regular': require('../assets/fonts/NotoSansKR-Regular.ttf'),
   });
 
+  const isSettingsHydrated = useSettingsHydration();
+  const hasCompletedOnboarding = useSettingsStore(
+    (state) => state.hasCompletedOnboarding,
+  );
+
   useEffect(() => {
     if (fontError) {
       throw fontError;
     }
   }, [fontError]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !isSettingsHydrated) {
     return (
       <View
         style={[
@@ -36,6 +60,15 @@ export default function RootLayout(): React.JSX.Element {
       >
         <ActivityIndicator size="large" color={COLORS.primaryBlue} />
       </View>
+    );
+  }
+
+  if (!hasCompletedOnboarding) {
+    return (
+      <SafeAreaProvider>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <OnboardingSlides />
+      </SafeAreaProvider>
     );
   }
 

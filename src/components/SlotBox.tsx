@@ -86,7 +86,9 @@ export function SlotBox({
               {
                 color: isFocused
                   ? COLORS.primaryBlue
-                  : COLORS.mutedText,
+                  : isDark
+                    ? COLORS.darkText
+                    : COLORS.lightText,
               },
             ]}
           >

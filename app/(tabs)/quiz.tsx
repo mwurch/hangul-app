@@ -18,6 +18,7 @@ import {
   QUIZ_LENGTH,
   generateQuizQuestions,
 } from '../../src/utils/quizGenerator';
+import { hapticCorrect, hapticWrong } from '../../src/utils/haptics';
 
 /** How long the green/red answer feedback stays visible before advancing. */
 const FEEDBACK_DELAY_MS = 900;
@@ -53,6 +54,7 @@ function StartView({ isDark, onStart }: StartViewProps): React.JSX.Element {
           styles.title,
           { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
         ]}
+        accessibilityRole="header"
       >
         퀴즈
       </Text>
@@ -122,6 +124,11 @@ export default function QuizScreen(): React.JSX.Element {
       answerQuestion(answer);
       const isCorrect = answer === currentQuestion.correctAnswer;
       updateProgress(currentQuestion.char, isCorrect);
+      if (isCorrect) {
+        hapticCorrect();
+      } else {
+        hapticWrong();
+      }
       AccessibilityInfo.announceForAccessibility(
         isCorrect
           ? 'Correct'

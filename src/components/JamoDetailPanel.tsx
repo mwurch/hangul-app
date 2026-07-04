@@ -18,6 +18,9 @@ interface JamoDetailPanelProps {
 
 const LARGE_GLYPH_SIZE = 72;
 
+/** Rendered close target is ~34pt; extend the touch target to >= 44pt. */
+const CLOSE_HIT_SLOP = { top: 6, bottom: 6, left: 6, right: 6 } as const;
+
 export function JamoDetailPanel({ jamo, onClose }: JamoDetailPanelProps): React.JSX.Element | null {
   const isDark = useColorScheme() === 'dark';
   const { playSound, isPlaying } = useAudio();
@@ -36,14 +39,16 @@ export function JamoDetailPanel({ jamo, onClose }: JamoDetailPanelProps): React.
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
+      <Pressable style={styles.overlay} onPress={onClose} accessible={false}>
         <Pressable
           style={[styles.panel, { backgroundColor: bgColor }]}
           onPress={() => {}}
+          accessible={false}
         >
           <Pressable
             onPress={onClose}
             style={styles.closeButton}
+            hitSlop={CLOSE_HIT_SLOP}
             accessibilityRole="button"
             accessibilityLabel="Close"
           >
@@ -87,7 +92,12 @@ export function JamoDetailPanel({ jamo, onClose }: JamoDetailPanelProps): React.
             </Text>
           </View>
 
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              { backgroundColor: isDark ? COLORS.darkBorder : COLORS.lightBorder },
+            ]}
+          />
 
           <Text style={[styles.sectionTitle, { color: COLORS.mutedText }]}>
             Example Word
@@ -167,7 +177,6 @@ const styles = StyleSheet.create({
   divider: {
     width: '100%',
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E0E0E0',
     marginVertical: 16,
   },
   sectionTitle: {

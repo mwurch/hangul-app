@@ -79,6 +79,7 @@ export default function StudyScreen(): React.JSX.Element {
             styles.title,
             { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
           ]}
+          accessibilityRole="header"
         >
           자모 학습
         </Text>
