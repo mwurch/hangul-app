@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   FlatList,
+  type LayoutChangeEvent,
   Pressable,
   StyleSheet,
   Text,
@@ -15,19 +16,32 @@ interface JamoKeyboardProps {
   readonly activeSlotLabel: string;
 }
 
-const KEY_SIZE = 44;
+/** Fallback before the first layout pass; also the largest a key may grow. */
+const MAX_KEY_SIZE = 44;
 const KEY_GAP = 8;
 const NUM_COLUMNS = 7;
 const GLYPH_SIZE = 24;
+
+/** Key size that fits NUM_COLUMNS keys plus gaps into the measured width. */
+function calculateKeySize(availableWidth: number): number {
+  if (availableWidth <= 0) {
+    return MAX_KEY_SIZE;
+  }
+  const gapsTotal = KEY_GAP * (NUM_COLUMNS - 1);
+  const fitted = Math.floor((availableWidth - gapsTotal) / NUM_COLUMNS);
+  return Math.min(MAX_KEY_SIZE, fitted);
+}
 
 function JamoKey({
   char,
   onPress,
   isDark,
+  size,
 }: {
   readonly char: string;
   readonly onPress: (char: string) => void;
   readonly isDark: boolean;
+  readonly size: number;
 }): React.JSX.Element {
   const handlePress = useCallback(() => {
     onPress(char);
@@ -39,6 +53,8 @@ function JamoKey({
       style={({ pressed }) => [
         styles.key,
         {
+          width: size,
+          height: size,
           backgroundColor: isDark ? COLORS.darkSurface : '#F0F0F0',
           opacity: pressed ? 0.6 : 1,
         },
@@ -64,14 +80,21 @@ export function JamoKeyboard({
   activeSlotLabel,
 }: JamoKeyboardProps): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
+  const [gridWidth, setGridWidth] = useState(0);
+
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    setGridWidth(event.nativeEvent.layout.width);
+  }, []);
+
+  const keySize = calculateKeySize(gridWidth);
 
   const keyExtractor = useCallback((item: string) => item, []);
 
   const renderItem = useCallback(
     ({ item }: { readonly item: string }) => (
-      <JamoKey char={item} onPress={onSelect} isDark={isDark} />
+      <JamoKey char={item} onPress={onSelect} isDark={isDark} size={keySize} />
     ),
-    [onSelect, isDark],
+    [onSelect, isDark, keySize],
   );
 
   return (
@@ -85,6 +108,7 @@ export function JamoKeyboard({
         {activeSlotLabel} 선택
       </Text>
       <FlatList
+        onLayout={handleLayout}
         data={characters}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
@@ -115,8 +139,6 @@ const styles = StyleSheet.create({
     gap: KEY_GAP,
   },
   key: {
-    width: KEY_SIZE,
-    height: KEY_SIZE,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
