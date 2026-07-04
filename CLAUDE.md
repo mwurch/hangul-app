@@ -51,7 +51,7 @@ app/
   _layout.tsx        # Root layout: font loading, SafeAreaProvider
 
 src/
-  data/             # jamo.ts (types + data), audioRegistry.ts (static require map)
+  data/             # jamo.ts (types + data), lessons.ts (5-lesson curriculum), audioRegistry.ts (static require map)
   store/            # progress.store.ts (SM-2 SRS), quiz.store.ts
   hooks/            # useAudio.ts (playback), useSyllableBuilder.ts (build tab state)
   components/       # CharCard, FilterTabs, JamoDetailPanel, AudioButton, SlotBox, JamoKeyboard
@@ -168,6 +168,10 @@ This test must pass before any merge touching `hangul.ts`.
 - **API note:** Uses the new `expo-audio` API (`createAudioPlayer`, `AudioSource`), not the deprecated `expo-av`.
 
 ---
+
+## Lesson progression
+
+The 24 자모 are split into 5 lessons (`src/data/lessons.ts`) of ~5 characters, each mixing consonants and vowels so the syllable builder works from lesson 1. A lesson completes when every one of its characters has been answered correctly **at least once** in a quiz; the next lesson then unlocks. Unlock state is **derived** from the progress store (`src/utils/lessonProgress.ts`) — never persisted separately. Locked characters appear dimmed with a lock in the Study grid (glyph visible as a syllabus preview — intentional; romanization hidden), are excluded from the Build keyboard and the Quiz pool, and the Progress tab lists per-lesson status. **Invariant:** every lesson must keep ≥4 distinct romanizations and ≥4 glyphs, or the quiz generator throws — enforced by `lessons.test.ts`; lesson 5 sits exactly at the minimum.
 
 ## SRS (Spaced Repetition)
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   Pressable,
@@ -14,6 +14,10 @@ import { QuizCard } from '../../src/components/QuizCard';
 import { QuizSummary } from '../../src/components/QuizSummary';
 import { useQuizStore, type QuizQuestion } from '../../src/store/quiz.store';
 import { useProgressStore } from '../../src/store/progress.store';
+import {
+  getCurrentLesson,
+  getUnlockedChars,
+} from '../../src/utils/lessonProgress';
 import {
   QUIZ_LENGTH,
   generateQuizQuestions,
@@ -43,10 +47,17 @@ function getPromptForQuestion(question: QuizQuestion): string {
 
 interface StartViewProps {
   readonly isDark: boolean;
+  readonly lessonId: number;
+  readonly poolSize: number;
   readonly onStart: () => void;
 }
 
-function StartView({ isDark, onStart }: StartViewProps): React.JSX.Element {
+function StartView({
+  isDark,
+  lessonId,
+  poolSize,
+  onStart,
+}: StartViewProps): React.JSX.Element {
   return (
     <View style={styles.startContainer}>
       <Text
@@ -59,7 +70,7 @@ function StartView({ isDark, onStart }: StartViewProps): React.JSX.Element {
         퀴즈
       </Text>
       <Text style={[styles.subtitle, { color: COLORS.mutedText }]}>
-        {`${QUIZ_LENGTH} questions · multiple choice`}
+        {`Lesson ${lessonId} · ${poolSize} characters · ${QUIZ_LENGTH} questions`}
       </Text>
       <Pressable
         testID="quiz-start-button"
@@ -91,6 +102,14 @@ export default function QuizScreen(): React.JSX.Element {
   const nextQuestion = useQuizStore((state) => state.nextQuestion);
   const resetQuiz = useQuizStore((state) => state.resetQuiz);
   const updateProgress = useProgressStore((state) => state.updateProgress);
+  const progress = useProgressStore((state) => state.progress);
+
+  const unlockedChars = useMemo(() => getUnlockedChars(progress), [progress]);
+  const currentLesson = useMemo(() => getCurrentLesson(progress), [progress]);
+  const quizPool = useMemo(
+    () => ALL_JAMO.filter((j) => unlockedChars.has(j.char)),
+    [unlockedChars],
+  );
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -105,8 +124,8 @@ export default function QuizScreen(): React.JSX.Element {
 
   const handleStart = useCallback((): void => {
     setSelectedAnswer(null);
-    startQuiz(generateQuizQuestions(ALL_JAMO, QUIZ_LENGTH));
-  }, [startQuiz]);
+    startQuiz(generateQuizQuestions(quizPool, QUIZ_LENGTH));
+  }, [startQuiz, quizPool]);
 
   const handleDone = useCallback((): void => {
     setSelectedAnswer(null);
@@ -173,7 +192,12 @@ export default function QuizScreen(): React.JSX.Element {
           onDone={handleDone}
         />
       ) : (
-        <StartView isDark={isDark} onStart={handleStart} />
+        <StartView
+          isDark={isDark}
+          lessonId={currentLesson.id}
+          poolSize={quizPool.length}
+          onStart={handleStart}
+        />
       )}
     </View>
   );

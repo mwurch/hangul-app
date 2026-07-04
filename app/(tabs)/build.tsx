@@ -1,10 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../src/theme/colors';
 import { SlotBox } from '../../src/components/SlotBox';
 import { JamoKeyboard } from '../../src/components/JamoKeyboard';
 import { useSyllableBuilder, type BuilderSlot } from '../../src/hooks/useSyllableBuilder';
+import { useProgressStore } from '../../src/store/progress.store';
+import { getUnlockedChars } from '../../src/utils/lessonProgress';
 import { hapticCompose } from '../../src/utils/haptics';
 
 const SLOT_LABELS: Readonly<Record<BuilderSlot, string>> = {
@@ -19,7 +21,14 @@ export default function BuildScreen(): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const { state, setSlot, clearSlot, focusSlot, reset, availableChars } = useSyllableBuilder();
+  const progress = useProgressStore((s) => s.progress);
   const previousSyllableRef = useRef<string | null>(state.composedSyllable);
+
+  const unlockedChars = useMemo(() => getUnlockedChars(progress), [progress]);
+  const unlockedAvailableChars = useMemo(
+    () => availableChars.filter((c) => unlockedChars.has(c)),
+    [availableChars, unlockedChars],
+  );
 
   useEffect(() => {
     const previousSyllable = previousSyllableRef.current;
@@ -162,7 +171,7 @@ export default function BuildScreen(): React.JSX.Element {
 
       {/* Jamo Keyboard */}
       <JamoKeyboard
-        characters={availableChars}
+        characters={unlockedAvailableChars}
         onSelect={handleSelect}
         activeSlotLabel={SLOT_LABELS[state.activeSlot]}
       />
