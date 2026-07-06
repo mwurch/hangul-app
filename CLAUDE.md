@@ -44,10 +44,13 @@ A focused, beautiful mobile app that teaches complete beginners the Korean Hangu
 app/
   (tabs)/
     _layout.tsx      # Tab bar configuration (4 tabs)
-    index.tsx        # 자모 study grid (Study tab)
+    index.tsx        # Lesson path — vertical journey of 5 lesson nodes (Study tab home)
     build.tsx        # Syllable builder (placeholder)
     quiz.tsx         # Quiz mode (placeholder)
     progress.tsx     # Progress overview (placeholder)
+  lesson/
+    [id].tsx         # Lesson detail (pushed route): the lesson's chars, status, quiz CTA
+  all-characters.tsx # Full 24-char grid with filters (pushed route, was the old Study grid)
   _layout.tsx        # Root layout: font loading, SafeAreaProvider
 
 src/
@@ -153,6 +156,7 @@ This test must pass before any merge touching `hangul.ts`.
 | `QuizSummary` | ✅ | End-of-quiz score view: score, percentage, tiered encouragement, retry/done actions. |
 | `ProgressRing` | ✅ | Circular indicator: learned / total for a module. SVG ring via react-native-svg. |
 | `OnboardingSlides` | ✅ | First-launch 3-slide intro (learn/build/quiz) with skip and start actions; gated by persisted settings store. |
+| `LessonNode` | ✅ | Circular lesson-path node: ✓ complete / fraction for current / 🔒 locked, with connector line. Used on the Study tab. |
 
 ---
 
@@ -171,7 +175,7 @@ This test must pass before any merge touching `hangul.ts`.
 
 ## Lesson progression
 
-The 24 자모 are split into 5 lessons (`src/data/lessons.ts`) of ~5 characters, each mixing consonants and vowels so the syllable builder works from lesson 1. A lesson completes when every one of its characters has been answered correctly **at least once** in a quiz; the next lesson then unlocks. Unlock state is **derived** from the progress store (`src/utils/lessonProgress.ts`) — never persisted separately. Locked characters appear dimmed with a lock in the Study grid (glyph visible as a syllabus preview — intentional; romanization hidden), are excluded from the Build keyboard and the Quiz pool, and the Progress tab lists per-lesson status. **Invariant:** every lesson must keep ≥4 distinct romanizations and ≥4 glyphs, or the quiz generator throws — enforced by `lessons.test.ts`; lesson 5 sits exactly at the minimum.
+The 24 자모 are split into 5 lessons (`src/data/lessons.ts`) of ~5 characters, each mixing consonants and vowels so the syllable builder works from lesson 1. A lesson completes when every one of its characters has been answered correctly **at least once** in a quiz; the next lesson then unlocks. Unlock state is **derived** from the progress store (`src/utils/lessonProgress.ts`) — never persisted separately. The Study tab is a vertical lesson path (`LessonNode` per lesson: ✓ complete / fraction for current / 🔒 locked); tapping an unlocked lesson opens `app/lesson/[id].tsx` with that lesson's characters, and "전체 보기" opens the full grid (`app/all-characters.tsx`) where locked characters appear dimmed with a lock (glyph visible as a syllabus preview — intentional; romanization hidden). Locked characters are excluded from the Build keyboard and the Quiz pool, and the Progress tab lists per-lesson status. **Invariant:** every lesson must keep ≥4 distinct romanizations and ≥4 glyphs, or the quiz generator throws — enforced by `lessons.test.ts`; lesson 5 sits exactly at the minimum.
 
 ## SRS (Spaced Repetition)
 

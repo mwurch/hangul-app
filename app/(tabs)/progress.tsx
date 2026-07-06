@@ -5,13 +5,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../src/theme/colors';
 import { ProgressRing } from '../../src/components/ProgressRing';
 import { CONSONANTS, VOWELS, ALL_JAMO, type Jamo } from '../../src/data/jamo';
-import { LESSONS, type Lesson } from '../../src/data/lessons';
-import { useProgressStore, type JamoProgress } from '../../src/store/progress.store';
+import type { Lesson } from '../../src/data/lessons';
+import { useProgressStore } from '../../src/store/progress.store';
 import { countLearned, getReviewQueue } from '../../src/utils/progressStats';
 import {
-  LESSON_COMPLETE_THRESHOLD,
-  getUnlockedLessonIds,
-  isLessonComplete,
+  describeLessonForAccessibility,
+  getLessonStatuses,
+} from '../../src/utils/lessonProgress';
+import type {
+  LessonStatus,
+  LessonWithStatus,
 } from '../../src/utils/lessonProgress';
 
 const MAX_VISIBLE_REVIEW_ROWS = 10;
@@ -158,58 +161,6 @@ function ReviewQueueSection({ queue, isDark }: ReviewQueueSectionProps): React.J
       )}
     </View>
   );
-}
-
-type ProgressMap = Readonly<Record<string, JamoProgress>>;
-
-type LessonStatus =
-  | { readonly kind: 'complete' }
-  | { readonly kind: 'unlocked'; readonly correctChars: number }
-  | { readonly kind: 'locked' };
-
-interface LessonWithStatus {
-  readonly lesson: Lesson;
-  readonly status: LessonStatus;
-}
-
-function countCorrectChars(lesson: Lesson, progress: ProgressMap): number {
-  return lesson.chars.filter((char) => {
-    const entry = progress[char];
-    return entry !== undefined && entry.correctCount >= LESSON_COMPLETE_THRESHOLD;
-  }).length;
-}
-
-function deriveLessonStatus(
-  lesson: Lesson,
-  unlockedIds: ReadonlySet<number>,
-  progress: ProgressMap,
-): LessonStatus {
-  if (isLessonComplete(lesson, progress)) {
-    return { kind: 'complete' };
-  }
-  if (unlockedIds.has(lesson.id)) {
-    return { kind: 'unlocked', correctChars: countCorrectChars(lesson, progress) };
-  }
-  return { kind: 'locked' };
-}
-
-function getLessonStatuses(progress: ProgressMap): readonly LessonWithStatus[] {
-  const unlockedIds = new Set(getUnlockedLessonIds(progress));
-  return LESSONS.map((lesson) => ({
-    lesson,
-    status: deriveLessonStatus(lesson, unlockedIds, progress),
-  }));
-}
-
-function describeLessonForAccessibility(lesson: Lesson, status: LessonStatus): string {
-  const base = `Lesson ${lesson.id}, ${lesson.koreanTitle}`;
-  if (status.kind === 'complete') {
-    return `${base}, completed`;
-  }
-  if (status.kind === 'unlocked') {
-    return `${base}, ${status.correctChars} of ${lesson.chars.length} correct`;
-  }
-  return `${base}, locked`;
 }
 
 interface LessonStatusBadgeProps {

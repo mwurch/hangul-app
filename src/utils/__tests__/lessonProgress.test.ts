@@ -1,10 +1,15 @@
 import {
+  LESSON_COMPLETE_THRESHOLD,
+  countCorrectChars,
+  describeLessonForAccessibility,
   getCurrentLesson,
   getLessonForChar,
+  getLessonStatuses,
   getUnlockedChars,
   getUnlockedLessonIds,
   isLessonComplete,
 } from '../lessonProgress';
+import type { LessonStatus, LessonWithStatus } from '../lessonProgress';
 import { LESSONS } from '../../data/lessons';
 import type { Lesson } from '../../data/lessons';
 import type { JamoProgress } from '../../store/progress.store';
@@ -261,6 +266,164 @@ describe('getCurrentLesson', () => {
   });
 });
 
+// --- countCorrectChars ---
+
+describe('countCorrectChars', () => {
+  test('returns 0 for empty progress', () => {
+    // Arrange
+    const progress: Record<string, JamoProgress> = {};
+
+    // Act
+    const count = countCorrectChars(LESSON_1, progress);
+
+    // Assert
+    expect(count).toBe(0);
+  });
+
+  test('entries below the threshold do not count', () => {
+    // Arrange
+    const progress = progressForChars(
+      LESSON_1.chars,
+      LESSON_COMPLETE_THRESHOLD - 1,
+    );
+
+    // Act
+    const count = countCorrectChars(LESSON_1, progress);
+
+    // Assert
+    expect(count).toBe(0);
+  });
+
+  test('entries exactly at the threshold count', () => {
+    // Arrange
+    const progress = progressForChars(
+      LESSON_1.chars,
+      LESSON_COMPLETE_THRESHOLD,
+    );
+
+    // Act
+    const count = countCorrectChars(LESSON_1, progress);
+
+    // Assert
+    expect(count).toBe(LESSON_1.chars.length);
+  });
+
+  test('counts only the lesson chars that reached the threshold', () => {
+    // Arrange
+    const twoChars = LESSON_1.chars.slice(0, 2);
+    const progress = progressForChars(twoChars, LESSON_COMPLETE_THRESHOLD);
+
+    // Act
+    const count = countCorrectChars(LESSON_1, progress);
+
+    // Assert
+    expect(count).toBe(2);
+  });
+});
+
+// --- getLessonStatuses ---
+
+describe('getLessonStatuses', () => {
+  test('returns all lessons in curriculum order', () => {
+    // Arrange
+    const progress: Record<string, JamoProgress> = {};
+
+    // Act
+    const statuses = getLessonStatuses(progress);
+
+    // Assert
+    expect(statuses.map(({ lesson }) => lesson)).toEqual([...LESSONS]);
+  });
+
+  test('empty progress: lesson 1 unlocked with 0 correct, the rest locked', () => {
+    // Arrange
+    const progress: Record<string, JamoProgress> = {};
+
+    // Act
+    const statuses = getLessonStatuses(progress);
+
+    // Assert
+    expect(statuses[0]?.status).toEqual({ kind: 'unlocked', correctChars: 0 });
+    statuses.slice(1).forEach(({ status }) => {
+      expect(status).toEqual({ kind: 'locked' });
+    });
+  });
+
+  test('mid progress: lesson 1 complete, lesson 2 unlocked with fraction, rest locked', () => {
+    // Arrange
+    const lesson2Started = LESSON_2.chars.slice(0, 2);
+    const progress = {
+      ...completedLessons([LESSON_1]),
+      ...progressForChars(lesson2Started, LESSON_COMPLETE_THRESHOLD),
+    };
+
+    // Act
+    const statuses = getLessonStatuses(progress);
+
+    // Assert
+    expect(statuses[0]?.status).toEqual({ kind: 'complete' });
+    expect(statuses[1]?.status).toEqual({ kind: 'unlocked', correctChars: 2 });
+    statuses.slice(2).forEach(({ status }) => {
+      expect(status).toEqual({ kind: 'locked' });
+    });
+  });
+
+  test('all lessons complete: every status is complete', () => {
+    // Arrange
+    const progress = completedLessons(LESSONS);
+
+    // Act
+    const statuses = getLessonStatuses(progress);
+
+    // Assert
+    expect(statuses).toHaveLength(LESSONS.length);
+    statuses.forEach(({ status }: LessonWithStatus) => {
+      expect(status).toEqual({ kind: 'complete' });
+    });
+  });
+});
+
+// --- describeLessonForAccessibility ---
+
+describe('describeLessonForAccessibility', () => {
+  test('describes a complete lesson', () => {
+    // Arrange
+    const status: LessonStatus = { kind: 'complete' };
+
+    // Act
+    const label = describeLessonForAccessibility(LESSON_1, status);
+
+    // Assert
+    expect(label).toBe(
+      `Lesson ${LESSON_1.id}, ${LESSON_1.koreanTitle}, completed`,
+    );
+  });
+
+  test('describes an unlocked lesson with its correct-count fraction', () => {
+    // Arrange
+    const status: LessonStatus = { kind: 'unlocked', correctChars: 3 };
+
+    // Act
+    const label = describeLessonForAccessibility(LESSON_2, status);
+
+    // Assert
+    expect(label).toBe(
+      `Lesson ${LESSON_2.id}, ${LESSON_2.koreanTitle}, 3 of ${LESSON_2.chars.length} correct`,
+    );
+  });
+
+  test('describes a locked lesson', () => {
+    // Arrange
+    const status: LessonStatus = { kind: 'locked' };
+
+    // Act
+    const label = describeLessonForAccessibility(LESSON_3, status);
+
+    // Assert
+    expect(label).toBe(`Lesson ${LESSON_3.id}, ${LESSON_3.koreanTitle}, locked`);
+  });
+});
+
 // --- Purity ---
 
 describe('purity', () => {
@@ -283,6 +446,9 @@ describe('purity', () => {
     getUnlockedChars(progress);
     getLessonForChar(LESSON_1.chars[0] as string);
     getCurrentLesson(progress);
+    countCorrectChars(LESSON_1, progress);
+    getLessonStatuses(progress);
+    describeLessonForAccessibility(LESSON_1, { kind: 'complete' });
 
     // Assert
     expect(progress).toEqual(progressSnapshot);
