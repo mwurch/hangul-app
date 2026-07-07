@@ -157,6 +157,7 @@ describe('getUnlockedLessonIds', () => {
     const unlockedIds = getUnlockedLessonIds(progress);
 
     // Assert
+    expect(unlockedIds).toEqual([1, 2, 3, 4, 5, 6]);
     expect(unlockedIds).toEqual(LESSONS.map((lesson) => lesson.id));
   });
 });
@@ -254,7 +255,7 @@ describe('getCurrentLesson', () => {
     expect(current).toBe(LESSON_2);
   });
 
-  test('all lessons complete returns the last lesson', () => {
+  test('all lessons complete returns the last lesson (lesson 6)', () => {
     // Arrange
     const progress = completedLessons(LESSONS);
 
@@ -263,6 +264,7 @@ describe('getCurrentLesson', () => {
 
     // Assert
     expect(current).toBe(LAST_LESSON);
+    expect(current.id).toBe(6);
   });
 });
 
@@ -376,7 +378,7 @@ describe('getLessonStatuses', () => {
     const statuses = getLessonStatuses(progress);
 
     // Assert
-    expect(statuses).toHaveLength(LESSONS.length);
+    expect(statuses).toHaveLength(6);
     statuses.forEach(({ status }: LessonWithStatus) => {
       expect(status).toEqual({ kind: 'complete' });
     });

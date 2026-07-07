@@ -1,7 +1,7 @@
 /**
  * Lesson curriculum for the lesson-progression feature.
  *
- * The five lessons exactly partition ALL_JAMO (24 characters, no overlaps).
+ * The six lessons exactly partition ALL_JAMO (30 characters, no overlaps).
  * Each lesson has at least 4 characters with 4 distinct romanizations so the
  * quiz generator's 4-option validation holds even when only lesson 1 is
  * unlocked. Verified by src/data/__tests__/lessons.test.ts.
@@ -31,18 +31,24 @@ export const LESSONS: readonly Lesson[] = [
     id: 3,
     title: 'Sounds',
     koreanTitle: '소리',
-    chars: ['ㅂ', 'ㅅ', 'ㅇ', 'ㅐ', 'ㅔ'],
+    chars: ['ㅂ', 'ㅅ', 'ㅇ', 'ㅓ', 'ㅐ'],
   },
   {
     id: 4,
     title: 'Aspirated',
     koreanTitle: '숨소리',
-    chars: ['ㅈ', 'ㅊ', 'ㅎ', 'ㅕ', 'ㅛ'],
+    chars: ['ㅈ', 'ㅊ', 'ㅎ', 'ㅔ', 'ㅕ'],
   },
   {
     id: 5,
-    title: 'Final',
-    koreanTitle: '마지막',
-    chars: ['ㅋ', 'ㅌ', 'ㅍ', 'ㅟ'],
+    title: 'Strong sounds',
+    koreanTitle: '센소리',
+    chars: ['ㅋ', 'ㅌ', 'ㅍ', 'ㅑ', 'ㅛ'],
+  },
+  {
+    id: 6,
+    title: 'Final vowels',
+    koreanTitle: '마지막 모음',
+    chars: ['ㅠ', 'ㅟ', 'ㅘ', 'ㅝ', 'ㅢ'],
   },
 ] as const;

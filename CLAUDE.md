@@ -62,7 +62,7 @@ src/
   utils/            # hangul.ts  ← syllable composition math
 
 assets/
-  audio/            # 48 MP3s: 24 자모 + 24 example words (placeholders until real recordings)
+  audio/            # 60 MP3s: 30 자모 + 30 example words (placeholders until real recordings)
   fonts/            # NotoSansKR-Regular.ttf (bundled)
 ```
 
@@ -120,7 +120,7 @@ This test must pass before any merge touching `hangul.ts`.
 
 ### In scope (v1)
 - **Module 1 — Consonants (자음):** 14 characters: ㄱ ㄴ ㄷ ㄹ ㅁ ㅂ ㅅ ㅇ ㅈ ㅊ ㅋ ㅌ ㅍ ㅎ
-- **Module 2 — Vowels (모음):** 10 characters: ㅡ ㅣ ㅐ ㅔ ㅕ ㅗ ㅛ ㅜ ㅟ ㅏ
+- **Module 2 — Vowels (모음):** 16 characters: ㅏ ㅑ ㅓ ㅕ ㅗ ㅛ ㅜ ㅠ ㅡ ㅣ (basic 10) + ㅐ ㅔ ㅟ ㅘ ㅝ ㅢ (common compounds)
 - **Module 3 — Syllable blocks:** Interactive composition (초성 + 중성 + optional 받침)
 - **Module 4 — Reading practice:** Short common words using only taught 자모
 
@@ -128,7 +128,7 @@ This test must pass before any merge touching `hangul.ts`.
 - Grammar or sentence structure
 - Vocabulary beyond per-character example words
 - Listening comprehension or speaking
-- Compound vowels (이중모음) — deferred to v1.1
+- Remaining compound vowels (ㅒ ㅖ ㅙ ㅚ ㅞ) — deferred to v1.1
 - Double consonants (쌍자음) — deferred to v1.1
 
 ---
@@ -163,19 +163,19 @@ This test must pass before any merge touching `hangul.ts`.
 ## Audio
 
 - All audio is **bundled** (not streamed). The app must work fully offline.
-- 24 base 자모 clips (~0.5s each) + 24 example word clips (~1.5s each) = 48 files total.
+- 30 base 자모 clips (~0.5s each) + 30 example word clips (~1.5s each) = 60 files total.
 - Format: MP3 128kbps. Target bundle size: under 4MB total.
 - Playback via `expo-audio` through `useAudio` hook → `AudioButton` component.
 - Asset lookup uses `src/data/audioRegistry.ts` — a static `require()` map keyed by the `audioFile` field in `jamo.ts`. Metro requires static paths; dynamic `require()` won't work.
 - **Audio is not optional.** Phase 3 (audio) is complete (placeholder MP3s); real recordings needed before ship.
-- **Current state:** 48 silent placeholder MP3s (68 bytes each). Replace with real Korean pronunciation recordings before shipping. Filenames must match `jamo.ts` exactly.
+- **Current state:** 60 silent placeholder MP3s (68 bytes each). Replace with real Korean pronunciation recordings before shipping. Filenames must match `jamo.ts` exactly.
 - **API note:** Uses the new `expo-audio` API (`createAudioPlayer`, `AudioSource`), not the deprecated `expo-av`.
 
 ---
 
 ## Lesson progression
 
-The 24 자모 are split into 5 lessons (`src/data/lessons.ts`) of ~5 characters, each mixing consonants and vowels so the syllable builder works from lesson 1. A lesson completes when every one of its characters has been answered correctly **at least once** in a quiz; the next lesson then unlocks. Unlock state is **derived** from the progress store (`src/utils/lessonProgress.ts`) — never persisted separately. The Study tab is a vertical lesson path (`LessonNode` per lesson: ✓ complete / fraction for current / 🔒 locked); tapping an unlocked lesson opens `app/lesson/[id].tsx` with that lesson's characters, and "전체 보기" opens the full grid (`app/all-characters.tsx`) where locked characters appear dimmed with a lock (glyph visible as a syllabus preview — intentional; romanization hidden). Locked characters are excluded from the Build keyboard and the Quiz pool, and the Progress tab lists per-lesson status. **Invariant:** every lesson must keep ≥4 distinct romanizations and ≥4 glyphs, or the quiz generator throws — enforced by `lessons.test.ts`; lesson 5 sits exactly at the minimum.
+The 30 자모 are split into 6 lessons (`src/data/lessons.ts`) of 5 characters; lessons 1–5 mix consonants and vowels so the syllable builder works from lesson 1, and lesson 6 (마지막 모음) is vowel-only. A lesson completes when every one of its characters has been answered correctly **at least once** in a quiz; the next lesson then unlocks. Unlock state is **derived** from the progress store (`src/utils/lessonProgress.ts`) — never persisted separately. The Study tab is a vertical lesson path (`LessonNode` per lesson: ✓ complete / fraction for current / 🔒 locked); tapping an unlocked lesson opens `app/lesson/[id].tsx` with that lesson's characters, and "전체 보기" opens the full grid (`app/all-characters.tsx`) where locked characters appear dimmed with a lock (glyph visible as a syllabus preview — intentional; romanization hidden). Locked characters are excluded from the Build keyboard and the Quiz pool, and the Progress tab lists per-lesson status. **Invariant:** every lesson must keep ≥4 distinct romanizations and ≥4 glyphs, or the quiz generator throws — enforced by `lessons.test.ts`.
 
 ## SRS (Spaced Repetition)
 
