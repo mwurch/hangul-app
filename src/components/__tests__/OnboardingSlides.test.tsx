@@ -46,10 +46,22 @@ describe('OnboardingSlides', () => {
     const { getByText, getByLabelText } = render(<OnboardingSlides />);
 
     // Assert
-    expect(getByText('배우기 / Learn')).toBeTruthy();
-    expect(getByText('조합 / Build')).toBeTruthy();
-    expect(getByText('퀴즈 / Quiz')).toBeTruthy();
+    expect(getByText('24개의 글자, 하나씩')).toBeTruthy();
+    expect(getByText('자모를 모아 한 글자로')).toBeTruthy();
+    expect(getByText('퀴즈로 확실하게')).toBeTruthy();
     expect(getByLabelText('Slide 1 of 3')).toBeTruthy();
+  });
+
+  it('advances to the next slide via the 다음 button without completing onboarding', () => {
+    // Arrange
+    const { getByTestId, getByLabelText } = render(<OnboardingSlides />);
+
+    // Act
+    fireEvent.press(getByTestId('onboarding-next-button'));
+
+    // Assert
+    expect(getByLabelText('Slide 2 of 3')).toBeTruthy();
+    expect(useSettingsStore.getState().hasCompletedOnboarding).toBe(false);
   });
 
   it('shows the skip button initially and completes onboarding when pressed', () => {
@@ -114,8 +126,13 @@ describe('OnboardingSlides', () => {
   });
 
   it('completes onboarding when the final CTA is pressed', () => {
-    // Arrange
+    // Arrange — the start button only exists on the last slide
     const { getByTestId } = render(<OnboardingSlides />);
+    fireEvent(
+      getByTestId('onboarding-scroll'),
+      'momentumScrollEnd',
+      buildMomentumScrollEndEvent(2 * PAGE_WIDTH, PAGE_WIDTH),
+    );
 
     // Act
     fireEvent.press(getByTestId('onboarding-start-button'));

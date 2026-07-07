@@ -9,17 +9,20 @@ interface AudioButtonProps {
 }
 
 const ICON_SIZE = {
-  small: 20,
-  large: 28,
+  small: 16,
+  large: 20,
 } as const;
 
+/** Spec 03: the filled circular audio button is 44pt in the example card. */
 const BUTTON_SIZE = {
   small: 36,
-  large: 48,
+  large: 44,
 } as const;
 
 /** Minimum touch target per accessibility guidelines. */
 const MIN_TOUCH_TARGET = 44;
+
+const PRESSED_OPACITY = 0.6;
 
 export function AudioButton({
   onPress,
@@ -29,13 +32,10 @@ export function AudioButton({
 }: AudioButtonProps): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
 
-  const iconColor = isPlaying
-    ? COLORS.teal
-    : isDark
-      ? COLORS.darkText
-      : COLORS.primaryBlue;
-
-  const borderColor = isDark ? COLORS.darkBorder : COLORS.lightBorder;
+  // Filled accent circle: primaryBlue with white icon in light mode,
+  // dark-mode blue with deep-background icon in dark mode (spec 03).
+  const backgroundColor = isDark ? COLORS.darkBlue : COLORS.primaryBlue;
+  const iconColor = isDark ? COLORS.darkBackground : COLORS.lightBackground;
   const hitSlop = Math.max(0, (MIN_TOUCH_TARGET - BUTTON_SIZE[size]) / 2);
 
   return (
@@ -52,8 +52,8 @@ export function AudioButton({
           width: BUTTON_SIZE[size],
           height: BUTTON_SIZE[size],
           borderRadius: BUTTON_SIZE[size] / 2,
-          borderColor,
-          opacity: pressed ? 0.6 : 1,
+          backgroundColor,
+          opacity: pressed ? PRESSED_OPACITY : 1,
         },
       ]}
     >
@@ -66,7 +66,6 @@ export function AudioButton({
 
 const styles = StyleSheet.create({
   button: {
-    borderWidth: StyleSheet.hairlineWidth,
     justifyContent: 'center',
     alignItems: 'center',
   },

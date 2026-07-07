@@ -6,6 +6,7 @@ import {
   Text,
   View,
   useColorScheme,
+  useWindowDimensions,
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { COLORS } from '../src/theme/colors';
@@ -20,6 +21,9 @@ import { FilterTabs, type JamoFilter } from '../src/components/FilterTabs';
 import { JamoDetailPanel } from '../src/components/JamoDetailPanel';
 
 const GRID_COLUMNS = 4;
+const GRID_GAP = 9;
+const SCREEN_PADDING = 20;
+const COUNT_TEXT_SIZE = 12;
 
 function getFilteredJamo(filter: JamoFilter): readonly Jamo[] {
   switch (filter) {
@@ -29,17 +33,6 @@ function getFilteredJamo(filter: JamoFilter): readonly Jamo[] {
       return VOWELS;
     default:
       return ALL_JAMO;
-  }
-}
-
-function getFilterLabel(filter: JamoFilter): string {
-  switch (filter) {
-    case 'consonant':
-      return '14 Consonants';
-    case 'vowel':
-      return '10 Vowels';
-    default:
-      return '24 Characters';
   }
 }
 
@@ -56,6 +49,7 @@ function showLockedAlert(char: string): void {
 
 export default function AllCharactersScreen(): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
+  const { width: windowWidth } = useWindowDimensions();
   const getProgress = useProgressStore((s) => s.getProgress);
   const progress = useProgressStore((s) => s.progress);
 
@@ -64,6 +58,11 @@ export default function AllCharactersScreen(): React.JSX.Element {
 
   const filteredJamo = useMemo(() => getFilteredJamo(filter), [filter]);
   const unlockedChars = useMemo(() => getUnlockedChars(progress), [progress]);
+
+  // Fixed cell width so incomplete last rows (e.g. 10 vowels) don't stretch.
+  const cellWidth =
+    (windowWidth - 2 * SCREEN_PADDING - (GRID_COLUMNS - 1) * GRID_GAP) /
+    GRID_COLUMNS;
 
   const handleCardPress = useCallback(
     (jamo: Jamo) => {
@@ -82,14 +81,16 @@ export default function AllCharactersScreen(): React.JSX.Element {
 
   const renderItem = useCallback(
     ({ item }: { readonly item: Jamo }) => (
-      <CharCard
-        jamo={item}
-        hasProgress={getProgress(item.char) !== undefined}
-        onPress={handleCardPress}
-        isLocked={!unlockedChars.has(item.char)}
-      />
+      <View style={{ width: cellWidth }}>
+        <CharCard
+          jamo={item}
+          hasProgress={getProgress(item.char) !== undefined}
+          onPress={handleCardPress}
+          isLocked={!unlockedChars.has(item.char)}
+        />
+      </View>
     ),
-    [getProgress, handleCardPress, unlockedChars],
+    [cellWidth, getProgress, handleCardPress, unlockedChars],
   );
 
   const keyExtractor = useCallback((item: Jamo) => item.char, []);
@@ -101,12 +102,18 @@ export default function AllCharactersScreen(): React.JSX.Element {
         { backgroundColor: isDark ? COLORS.darkBackground : COLORS.lightBackground },
       ]}
     >
-      <Stack.Screen options={{ title: '전체 자모' }} />
+      <Stack.Screen options={{ title: '전체 글자' }} />
 
       <FilterTabs activeFilter={filter} onFilterChange={setFilter} />
 
-      <Text style={[styles.subtitle, { color: COLORS.mutedText }]}>
-        {`${getFilterLabel(filter)} · ${unlockedChars.size}/${ALL_JAMO.length} unlocked`}
+      <Text
+        style={[
+          styles.countLine,
+          { color: isDark ? COLORS.darkMutedText : COLORS.mutedText },
+        ]}
+        accessibilityLabel={`${unlockedChars.size} of ${ALL_JAMO.length} characters unlocked`}
+      >
+        {`${unlockedChars.size} / ${ALL_JAMO.length}`}
       </Text>
 
       <FlatList
@@ -128,16 +135,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  subtitle: {
-    fontSize: 14,
-    paddingHorizontal: 20,
-    paddingBottom: 4,
+  countLine: {
+    fontSize: COUNT_TEXT_SIZE,
+    fontWeight: '700',
+    paddingHorizontal: SCREEN_PADDING,
+    paddingBottom: 6,
   },
   grid: {
-    paddingHorizontal: 14,
+    paddingHorizontal: SCREEN_PADDING,
     paddingBottom: 24,
+    gap: GRID_GAP,
   },
   gridRow: {
-    justifyContent: 'center',
+    gap: GRID_GAP,
   },
 });

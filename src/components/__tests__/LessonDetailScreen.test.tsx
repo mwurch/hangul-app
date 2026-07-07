@@ -16,13 +16,23 @@ jest.mock('expo-router', () => {
   };
 });
 
-// The detail panel pulls in audio playback; irrelevant to route logic.
-jest.mock('../JamoDetailPanel', () => ({
-  JamoDetailPanel: () => null,
+// Stub that makes panel visibility observable without pulling in audio playback.
+jest.mock('../JamoDetailPanel', () => {
+  const { Text } = require('react-native');
+  return {
+    JamoDetailPanel: ({ jamo }: { readonly jamo: { readonly char: string } | null }) =>
+      jamo === null ? null : <Text testID="detail-panel-open">{jamo.char}</Text>,
+  };
+});
+
+// The lesson cards play audio via useAudio; native playback is irrelevant here.
+const mockPlaySound = jest.fn();
+jest.mock('../../hooks/useAudio', () => ({
+  useAudio: () => ({ playSound: mockPlaySound, isPlaying: false }),
 }));
 
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import LessonDetailScreen from '../../../app/lesson/[id]';
 import { useProgressStore } from '../../store/progress.store';
 import { DEFAULT_JAMO_PROGRESS } from '../../data/jamo';
@@ -44,6 +54,20 @@ describe('LessonDetailScreen route guards', () => {
   beforeEach(() => {
     useProgressStore.setState({ progress: {}, streak: 0, lastStudyDate: 0 });
     mockUseLocalSearchParams.mockReset();
+    mockPlaySound.mockClear();
+  });
+
+  test('audio button plays sound without opening the detail panel', () => {
+    // Arrange — lesson 1's first char is ㄱ (기역)
+    mockUseLocalSearchParams.mockReturnValue({ id: '1' });
+    const { getByLabelText, queryByTestId } = render(<LessonDetailScreen />);
+
+    // Act — press the nested audio button inside the card
+    fireEvent.press(getByLabelText('Play pronunciation of 기역'));
+
+    // Assert — sound played, but the card press did not fire
+    expect(mockPlaySound).toHaveBeenCalledTimes(1);
+    expect(queryByTestId('detail-panel-open')).toBeNull();
   });
 
   test('renders lesson 1 characters for a valid unlocked id', () => {

@@ -14,11 +14,21 @@ const TABS: readonly { readonly key: JamoFilter; readonly label: string }[] = [
   { key: 'vowel', label: '모음' },
 ] as const;
 
-/** Rendered tab height is ~36pt; extend the touch target to >= 44pt. */
-const TAB_HIT_SLOP = { top: 4, bottom: 4 } as const;
+const SEGMENT_HEIGHT = 38;
+const SEGMENT_RADIUS = 12;
+const SEGMENT_GAP = 8;
+const LABEL_SIZE = 13;
+
+/** Rendered segment height is 38pt; extend the touch target to >= 44pt. */
+const TAB_HIT_SLOP = { top: 3, bottom: 3 } as const;
 
 export function FilterTabs({ activeFilter, onFilterChange }: FilterTabsProps): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
+
+  const activeSegmentColor = isDark ? COLORS.darkBlue : COLORS.primaryBlue;
+  const activeLabelColor = isDark ? COLORS.darkBackground : COLORS.lightBackground;
+  const inactiveSegmentColor = isDark ? COLORS.darkSurface : COLORS.lightSurface;
+  const inactiveLabelColor = isDark ? COLORS.darkMutedText : COLORS.mutedText;
 
   return (
     <View style={styles.container}>
@@ -30,12 +40,10 @@ export function FilterTabs({ activeFilter, onFilterChange }: FilterTabsProps): R
             onPress={() => onFilterChange(key)}
             hitSlop={TAB_HIT_SLOP}
             style={[
-              styles.tab,
-              isActive
-                ? styles.activeTab
-                : {
-                    backgroundColor: isDark ? COLORS.darkSurface : COLORS.lightSurface,
-                  },
+              styles.segment,
+              {
+                backgroundColor: isActive ? activeSegmentColor : inactiveSegmentColor,
+              },
             ]}
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
@@ -43,10 +51,9 @@ export function FilterTabs({ activeFilter, onFilterChange }: FilterTabsProps): R
           >
             <Text
               style={[
-                styles.tabText,
-                isActive
-                  ? styles.activeTabText
-                  : { color: isDark ? COLORS.darkText : COLORS.lightText },
+                styles.label,
+                isActive ? styles.activeLabel : styles.inactiveLabel,
+                { color: isActive ? activeLabelColor : inactiveLabelColor },
               ]}
             >
               {label}
@@ -63,24 +70,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 12,
-    gap: 8,
+    gap: SEGMENT_GAP,
   },
-  tab: {
+  segment: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
+    height: SEGMENT_HEIGHT,
+    borderRadius: SEGMENT_RADIUS,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  activeTab: {
-    backgroundColor: COLORS.primaryBlue,
-  },
-  tabText: {
-    fontSize: 14,
+  label: {
+    fontSize: LABEL_SIZE,
     fontFamily: 'NotoSansKR-Regular',
-    fontWeight: '500',
   },
-  activeTabText: {
-    color: COLORS.lightBackground,
+  activeLabel: {
+    fontWeight: '700',
+  },
+  inactiveLabel: {
     fontWeight: '600',
   },
 });
