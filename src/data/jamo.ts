@@ -45,6 +45,18 @@ export const CONSONANTS: readonly Jamo[] = [
     },
   },
   {
+    char: 'ㄲ',
+    type: 'consonant',
+    romanization: 'kk',
+    koreanName: '쌍기역',
+    audioFile: 'ssanggiyeok.mp3',
+    exampleWord: {
+      korean: '꼬리',
+      english: 'tail',
+      audioFile: 'kkori.mp3',
+    },
+  },
+  {
     char: 'ㄴ',
     type: 'consonant',
     romanization: 'n',
@@ -66,6 +78,18 @@ export const CONSONANTS: readonly Jamo[] = [
       korean: '다리',
       english: 'bridge/leg',
       audioFile: 'dari.mp3',
+    },
+  },
+  {
+    char: 'ㄸ',
+    type: 'consonant',
+    romanization: 'tt',
+    koreanName: '쌍디귿',
+    audioFile: 'ssangdigeut.mp3',
+    exampleWord: {
+      korean: '딸기',
+      english: 'strawberry',
+      audioFile: 'ttalgi.mp3',
     },
   },
   {
@@ -105,6 +129,18 @@ export const CONSONANTS: readonly Jamo[] = [
     },
   },
   {
+    char: 'ㅃ',
+    type: 'consonant',
+    romanization: 'pp',
+    koreanName: '쌍비읍',
+    audioFile: 'ssangbieup.mp3',
+    exampleWord: {
+      korean: '빵',
+      english: 'bread',
+      audioFile: 'ppang.mp3',
+    },
+  },
+  {
     char: 'ㅅ',
     type: 'consonant',
     romanization: 's',
@@ -114,6 +150,18 @@ export const CONSONANTS: readonly Jamo[] = [
       korean: '사과',
       english: 'apple',
       audioFile: 'sagwa.mp3',
+    },
+  },
+  {
+    char: 'ㅆ',
+    type: 'consonant',
+    romanization: 'ss',
+    koreanName: '쌍시옷',
+    audioFile: 'ssangsiot.mp3',
+    exampleWord: {
+      korean: '쌀',
+      english: 'rice',
+      audioFile: 'ssal.mp3',
     },
   },
   {
@@ -138,6 +186,18 @@ export const CONSONANTS: readonly Jamo[] = [
       korean: '자동차',
       english: 'car',
       audioFile: 'jadongcha.mp3',
+    },
+  },
+  {
+    char: 'ㅉ',
+    type: 'consonant',
+    romanization: 'jj',
+    koreanName: '쌍지읒',
+    audioFile: 'ssangjieut.mp3',
+    exampleWord: {
+      korean: '찌개',
+      english: 'stew',
+      audioFile: 'jjigae.mp3',
     },
   },
   {
@@ -240,6 +300,18 @@ export const VOWELS: readonly Jamo[] = [
     },
   },
   {
+    char: 'ㅒ',
+    type: 'vowel',
+    romanization: 'yae',
+    koreanName: '얘',
+    audioFile: 'yae.mp3',
+    exampleWord: {
+      korean: '얘기',
+      english: 'story',
+      audioFile: 'yaegi.mp3',
+    },
+  },
+  {
     char: 'ㅓ',
     type: 'vowel',
     romanization: 'eo',
@@ -276,6 +348,18 @@ export const VOWELS: readonly Jamo[] = [
     },
   },
   {
+    char: 'ㅖ',
+    type: 'vowel',
+    romanization: 'ye',
+    koreanName: '예',
+    audioFile: 'ye.mp3',
+    exampleWord: {
+      korean: '시계',
+      english: 'clock',
+      audioFile: 'sigye.mp3',
+    },
+  },
+  {
     char: 'ㅗ',
     type: 'vowel',
     romanization: 'o',
@@ -297,6 +381,30 @@ export const VOWELS: readonly Jamo[] = [
       korean: '과일',
       english: 'fruit',
       audioFile: 'gwail.mp3',
+    },
+  },
+  {
+    char: 'ㅙ',
+    type: 'vowel',
+    romanization: 'wae',
+    koreanName: '왜',
+    audioFile: 'wae.mp3',
+    exampleWord: {
+      korean: '돼지',
+      english: 'pig',
+      audioFile: 'dwaeji.mp3',
+    },
+  },
+  {
+    char: 'ㅚ',
+    type: 'vowel',
+    romanization: 'oe',
+    koreanName: '외',
+    audioFile: 'oe.mp3',
+    exampleWord: {
+      korean: '외국',
+      english: 'foreign country',
+      audioFile: 'oeguk.mp3',
     },
   },
   {
@@ -333,6 +441,18 @@ export const VOWELS: readonly Jamo[] = [
       korean: '병원',
       english: 'hospital',
       audioFile: 'byeongwon.mp3',
+    },
+  },
+  {
+    char: 'ㅞ',
+    type: 'vowel',
+    romanization: 'we',
+    koreanName: '웨',
+    audioFile: 'we.mp3',
+    exampleWord: {
+      korean: '웨이터',
+      english: 'waiter',
+      audioFile: 'weiteo.mp3',
     },
   },
   {

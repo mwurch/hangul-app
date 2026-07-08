@@ -73,7 +73,7 @@ describe('JamoKeyboard', () => {
     expect(getByText('종성 선택')).toBeTruthy();
   });
 
-  it('renders correct number of keys for consonants (14)', () => {
+  it('renders correct number of keys for consonants (19)', () => {
     // Arrange & Act
     const { getAllByRole } = render(
       <JamoKeyboard
@@ -85,10 +85,10 @@ describe('JamoKeyboard', () => {
 
     // Assert
     const buttons = getAllByRole('button');
-    expect(buttons).toHaveLength(14);
+    expect(buttons).toHaveLength(19);
   });
 
-  it('renders correct number of keys for vowels (16)', () => {
+  it('renders correct number of keys for vowels (21)', () => {
     // Arrange & Act
     const { getAllByRole } = render(
       <JamoKeyboard
@@ -100,7 +100,7 @@ describe('JamoKeyboard', () => {
 
     // Assert
     const buttons = getAllByRole('button');
-    expect(buttons).toHaveLength(16);
+    expect(buttons).toHaveLength(21);
   });
 
   it('does not call onSelect for characters not tapped', () => {

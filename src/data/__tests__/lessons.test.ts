@@ -4,11 +4,12 @@ import { ALL_JAMO } from '../jamo';
 
 // --- Constants ---
 
-const EXPECTED_LESSON_COUNT = 6;
+const EXPECTED_LESSON_COUNT = 8;
 const MIN_CHARS_PER_LESSON = 4;
 const MIN_DISTINCT_ROMANIZATIONS = 4;
 const CONSONANT_AND_VOWEL_LESSON_IDS = [1, 2, 3, 4, 5];
-const VOWEL_ONLY_LESSON_ID = 6;
+const VOWEL_ONLY_LESSON_IDS = [6, 7];
+const CONSONANT_ONLY_LESSON_ID = 8;
 
 // --- Helpers ---
 
@@ -31,13 +32,13 @@ function typeFor(char: string): 'consonant' | 'vowel' {
 // --- LESSONS ---
 
 describe('LESSONS', () => {
-  test('has exactly 6 lessons', () => {
+  test('has exactly 8 lessons', () => {
     expect(LESSONS).toHaveLength(EXPECTED_LESSON_COUNT);
   });
 
-  test('ids are sequential 1..6', () => {
+  test('ids are sequential 1..8', () => {
     // Arrange
-    const expectedIds = [1, 2, 3, 4, 5, 6];
+    const expectedIds = [1, 2, 3, 4, 5, 6, 7, 8];
 
     // Act
     const ids = LESSONS.map((lesson: Lesson) => lesson.id);
@@ -53,7 +54,7 @@ describe('LESSONS', () => {
     });
   });
 
-  test('lesson chars exactly partition ALL_JAMO (union equals the 30 chars)', () => {
+  test('lesson chars exactly partition ALL_JAMO (union equals the 40 chars)', () => {
     // Arrange
     const allJamoChars = ALL_JAMO.map((jamo) => jamo.char).sort();
 
@@ -110,9 +111,27 @@ describe('LESSONS', () => {
     });
   });
 
-  test('lesson 6 contains only vowels', () => {
+  test('lessons 6 and 7 contain only vowels', () => {
+    VOWEL_ONLY_LESSON_IDS.forEach((lessonId) => {
+      // Arrange
+      const lesson = LESSONS.find((entry) => entry.id === lessonId);
+      expect(lesson).toBeDefined();
+
+      // Act
+      const types = (lesson as Lesson).chars.map((char) => typeFor(char));
+
+      // Assert
+      types.forEach((type) => {
+        expect(type).toBe('vowel');
+      });
+    });
+  });
+
+  test('lesson 8 contains only consonants', () => {
     // Arrange
-    const lesson = LESSONS.find((entry) => entry.id === VOWEL_ONLY_LESSON_ID);
+    const lesson = LESSONS.find(
+      (entry) => entry.id === CONSONANT_ONLY_LESSON_ID,
+    );
     expect(lesson).toBeDefined();
 
     // Act
@@ -120,7 +139,7 @@ describe('LESSONS', () => {
 
     // Assert
     types.forEach((type) => {
-      expect(type).toBe('vowel');
+      expect(type).toBe('consonant');
     });
   });
 
@@ -162,6 +181,18 @@ describe('LESSONS', () => {
         title: 'Final vowels',
         koreanTitle: '마지막 모음',
         chars: ['ㅠ', 'ㅟ', 'ㅘ', 'ㅝ', 'ㅢ'],
+      },
+      {
+        id: 7,
+        title: 'Compound vowels',
+        koreanTitle: '겹모음',
+        chars: ['ㅒ', 'ㅖ', 'ㅙ', 'ㅚ', 'ㅞ'],
+      },
+      {
+        id: 8,
+        title: 'Tense sounds',
+        koreanTitle: '쌍자음',
+        chars: ['ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ'],
       },
     ];
 

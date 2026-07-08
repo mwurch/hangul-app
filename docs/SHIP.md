@@ -5,8 +5,8 @@ account owner; items marked 🤖 are automatable from this repo.
 
 ## 1. Blockers before any store build
 
-- [ ] 🧑 **Replace the 60 placeholder MP3s** in `assets/audio/` with real Korean
-      pronunciation recordings (30 자모 + 30 example words, MP3 128kbps,
+- [ ] 🧑 **Replace the 80 placeholder MP3s** in `assets/audio/` with real Korean
+      pronunciation recordings (40 자모 + 40 example words, MP3 128kbps,
       filenames must match `src/data/jamo.ts` exactly; target < 4MB total).
 - [ ] 🧑 Review app icon / adaptive icon / splash icon in `assets/` — currently
       template-generated; replace with final artwork if desired.
@@ -54,8 +54,8 @@ Read Korean letters in days, not months.
 
 > Learn to read Korean — and nothing else.
 >
-> 한글 teaches you the Korean alphabet from zero: all 14 consonants and 10
-> vowels, with native-speaker audio for every letter and example word.
+> 한글 teaches you the complete Korean alphabet from zero: all 40 letters —
+> 19 consonants and 21 vowels — with audio for every letter and example word.
 >
 > • Study: flashcards for every 자모 with pronunciation and mouth-shape hints
 > • Build: compose real syllable blocks yourself — the "aha" moment where

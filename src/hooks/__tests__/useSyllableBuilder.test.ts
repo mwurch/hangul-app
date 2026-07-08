@@ -341,7 +341,7 @@ describe('useSyllableBuilder', () => {
       // Assert
       expect(result.current.state.activeSlot).toBe('initial');
       expect(result.current.availableChars).toEqual(expectedChars);
-      expect(result.current.availableChars.length).toBe(14);
+      expect(result.current.availableChars.length).toBe(19);
     });
 
     it('returns valid vowels when activeSlot is vowel', () => {
@@ -360,7 +360,7 @@ describe('useSyllableBuilder', () => {
       // Assert
       expect(result.current.state.activeSlot).toBe('vowel');
       expect(result.current.availableChars).toEqual(expectedChars);
-      expect(result.current.availableChars.length).toBe(16);
+      expect(result.current.availableChars.length).toBe(21);
     });
 
     it('returns valid final consonants when activeSlot is final', () => {
