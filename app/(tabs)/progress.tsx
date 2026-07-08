@@ -17,13 +17,45 @@ import type {
   LessonWithStatus,
 } from '../../src/utils/lessonProgress';
 
+const KOREAN_FONT = 'NotoSansKR-Regular';
 const MAX_VISIBLE_REVIEW_ROWS = 10;
-const REVIEW_GLYPH_SIZE = 28;
-const LESSON_CHARS_GLYPH_SIZE = 16;
-const LESSON_CHAR_SEPARATOR = ' ';
-const STREAK_UNIT = '일';
+const REVIEW_GLYPH_TILE_SIZE = 40;
+const REVIEW_GLYPH_SIZE = 22;
+const STREAK_SUFFIX = '일 연속';
 const CONSONANT_CHARS: readonly string[] = CONSONANTS.map((jamo) => jamo.char);
 const VOWEL_CHARS: readonly string[] = VOWELS.map((jamo) => jamo.char);
+
+function blueAccent(isDark: boolean): string {
+  return isDark ? COLORS.darkBlue : COLORS.primaryBlue;
+}
+
+function tealAccent(isDark: boolean): string {
+  return isDark ? COLORS.darkTeal : COLORS.teal;
+}
+
+function mutedColor(isDark: boolean): string {
+  return isDark ? COLORS.darkMutedText : COLORS.mutedText;
+}
+
+function surfaceColor(isDark: boolean): string {
+  return isDark ? COLORS.darkSurface : COLORS.lightSurface;
+}
+
+interface SectionHeaderProps {
+  readonly title: string;
+  readonly isDark: boolean;
+}
+
+function SectionHeader({ title, isDark }: SectionHeaderProps): React.JSX.Element {
+  return (
+    <Text
+      style={[styles.sectionHeader, { color: mutedColor(isDark) }]}
+      accessibilityRole="header"
+    >
+      {title}
+    </Text>
+  );
+}
 
 interface StreakCardProps {
   readonly streak: number;
@@ -36,11 +68,8 @@ function StreakCard({ streak, isDark }: StreakCardProps): React.JSX.Element {
   return (
     <View
       style={[
-        styles.card,
-        {
-          backgroundColor: isDark ? COLORS.darkSurface : COLORS.lightBackground,
-          borderColor: isDark ? COLORS.darkBorder : COLORS.lightBorder,
-        },
+        styles.streakCard,
+        { backgroundColor: isDark ? COLORS.darkTealTintBg : COLORS.tealTintBg },
       ]}
       accessible
       accessibilityLabel={
@@ -49,30 +78,18 @@ function StreakCard({ streak, isDark }: StreakCardProps): React.JSX.Element {
           : 'No study streak yet. Take a quiz to start one.'
       }
     >
-      <View style={styles.streakRow}>
-        <Text style={styles.streakFlame} accessibilityElementsHidden>
-          🔥
+      <Text style={styles.streakFlame} accessibilityElementsHidden>
+        🔥
+      </Text>
+      {hasStreak ? (
+        <Text style={[styles.streakCount, { color: tealAccent(isDark) }]}>
+          {`${streak}${STREAK_SUFFIX}`}
         </Text>
-        <View style={styles.streakTextColumn}>
-          <Text
-            style={[
-              styles.streakTitle,
-              { color: isDark ? COLORS.darkText : COLORS.lightText },
-            ]}
-          >
-            연속 학습
-          </Text>
-          {hasStreak ? (
-            <Text style={[styles.streakCount, { color: COLORS.teal }]}>
-              {`${streak}${STREAK_UNIT}`}
-            </Text>
-          ) : (
-            <Text style={[styles.streakEmpty, { color: COLORS.mutedText }]}>
-              퀴즈를 풀고 연속 학습을 시작해 보세요!
-            </Text>
-          )}
-        </View>
-      </View>
+      ) : (
+        <Text style={[styles.streakEmpty, { color: mutedColor(isDark) }]}>
+          퀴즈를 풀고 연속 학습을 시작해 보세요!
+        </Text>
+      )}
     </View>
   );
 }
@@ -85,21 +102,28 @@ interface ReviewRowProps {
 function ReviewRow({ jamo, isDark }: ReviewRowProps): React.JSX.Element {
   return (
     <View
-      style={[
-        styles.reviewRow,
-        { borderBottomColor: isDark ? COLORS.darkBorder : COLORS.lightBorder },
-      ]}
+      style={[styles.reviewCard, { backgroundColor: surfaceColor(isDark) }]}
       accessible
       accessibilityLabel={`Review ${jamo.koreanName}, ${jamo.romanization}`}
     >
-      <Text
+      <View
         style={[
-          styles.reviewGlyph,
-          { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
+          styles.reviewGlyphTile,
+          {
+            backgroundColor: isDark ? COLORS.darkBackground : COLORS.lightBackground,
+            borderColor: isDark ? COLORS.darkBorder : COLORS.lightBorder,
+          },
         ]}
       >
-        {jamo.char}
-      </Text>
+        <Text
+          style={[
+            styles.reviewGlyph,
+            { color: isDark ? COLORS.darkText : COLORS.lightText },
+          ]}
+        >
+          {jamo.char}
+        </Text>
+      </View>
       <View style={styles.reviewTextColumn}>
         <Text
           style={[
@@ -107,10 +131,20 @@ function ReviewRow({ jamo, isDark }: ReviewRowProps): React.JSX.Element {
             { color: isDark ? COLORS.darkText : COLORS.lightText },
           ]}
         >
-          {jamo.koreanName}
+          {`${jamo.koreanName} · ${jamo.romanization}`}
         </Text>
-        <Text style={[styles.reviewRomanization, { color: COLORS.mutedText }]}>
-          {jamo.romanization}
+        <Text style={[styles.reviewDue, { color: mutedColor(isDark) }]}>
+          복습 지금
+        </Text>
+      </View>
+      <View
+        style={[
+          styles.reviewChip,
+          { backgroundColor: isDark ? COLORS.darkChipBlueBg : COLORS.chipBlueBg },
+        ]}
+      >
+        <Text style={[styles.reviewChipText, { color: blueAccent(isDark) }]}>
+          복습
         </Text>
       </View>
     </View>
@@ -128,21 +162,10 @@ function ReviewQueueSection({ queue, isDark }: ReviewQueueSectionProps): React.J
 
   return (
     <View style={styles.section}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          { color: isDark ? COLORS.darkText : COLORS.lightText },
-        ]}
-        accessibilityRole="header"
-      >
-        복습 대기열
-      </Text>
-      <Text style={[styles.sectionSubtitle, { color: COLORS.mutedText }]}>
-        Review queue
-      </Text>
+      <SectionHeader title="복습 대기열 · Review" isDark={isDark} />
       {queue.length === 0 ? (
         <Text
-          style={[styles.emptyQueueText, { color: COLORS.mutedText }]}
+          style={[styles.emptyQueueText, { color: mutedColor(isDark) }]}
           accessibilityLabel="Nothing to review right now"
         >
           지금은 복습할 것이 없어요 🎉
@@ -153,7 +176,7 @@ function ReviewQueueSection({ queue, isDark }: ReviewQueueSectionProps): React.J
             <ReviewRow key={jamo.char} jamo={jamo} isDark={isDark} />
           ))}
           {hiddenCount > 0 && (
-            <Text style={[styles.moreText, { color: COLORS.mutedText }]}>
+            <Text style={[styles.moreText, { color: mutedColor(isDark) }]}>
               {`+${hiddenCount} more`}
             </Text>
           )}
@@ -171,21 +194,29 @@ interface LessonStatusBadgeProps {
 
 function LessonStatusBadge({ status, total, isDark }: LessonStatusBadgeProps): React.JSX.Element {
   if (status.kind === 'complete') {
-    return <Text style={[styles.lessonStatus, { color: COLORS.teal }]}>✓ 완료</Text>;
-  }
-  if (status.kind === 'unlocked') {
     return (
-      <Text
-        style={[
-          styles.lessonStatus,
-          { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
-        ]}
-      >
-        {`${status.correctChars}/${total}`}
+      <Text style={[styles.lessonStatus, { color: tealAccent(isDark) }]}>
+        ✓ 완료
       </Text>
     );
   }
-  return <Text style={[styles.lessonStatus, { color: COLORS.mutedText }]}>🔒</Text>;
+  if (status.kind === 'unlocked') {
+    return (
+      <Text style={[styles.lessonStatus, { color: blueAccent(isDark) }]}>
+        {`${status.correctChars} / ${total}`}
+      </Text>
+    );
+  }
+  return (
+    <Text
+      style={[
+        styles.lessonStatus,
+        { color: isDark ? COLORS.darkLockedText : COLORS.lockedText },
+      ]}
+    >
+      잠김
+    </Text>
+  );
 }
 
 interface LessonRowProps {
@@ -197,7 +228,8 @@ interface LessonRowProps {
 function LessonRow({ lesson, status, isDark }: LessonRowProps): React.JSX.Element {
   const isLocked = status.kind === 'locked';
   const activeColor = isDark ? COLORS.darkText : COLORS.lightText;
-  const labelColor = isLocked ? COLORS.mutedText : activeColor;
+  const lockedColor = isDark ? COLORS.darkLockedText : COLORS.lockedText;
+  const labelColor = isLocked ? lockedColor : activeColor;
 
   return (
     <View
@@ -208,14 +240,9 @@ function LessonRow({ lesson, status, isDark }: LessonRowProps): React.JSX.Elemen
       accessible
       accessibilityLabel={describeLessonForAccessibility(lesson, status)}
     >
-      <View style={styles.lessonTextColumn}>
-        <Text style={[styles.lessonLabel, { color: labelColor }]}>
-          {`Lesson ${lesson.id} · ${lesson.koreanTitle}`}
-        </Text>
-        <Text style={[styles.lessonChars, { color: labelColor }]}>
-          {lesson.chars.join(LESSON_CHAR_SEPARATOR)}
-        </Text>
-      </View>
+      <Text style={[styles.lessonLabel, { color: labelColor }]}>
+        {`Lesson ${lesson.id} · ${lesson.koreanTitle}`}
+      </Text>
       <LessonStatusBadge status={status} total={lesson.chars.length} isDark={isDark} />
     </View>
   );
@@ -229,21 +256,41 @@ interface LessonsSectionProps {
 function LessonsSection({ lessons, isDark }: LessonsSectionProps): React.JSX.Element {
   return (
     <View style={styles.section}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          { color: isDark ? COLORS.darkText : COLORS.lightText },
-        ]}
-        accessibilityRole="header"
-      >
-        레슨
-      </Text>
-      <Text style={[styles.sectionSubtitle, { color: COLORS.mutedText }]}>
-        Lessons
-      </Text>
+      <SectionHeader title="레슨" isDark={isDark} />
       {lessons.map(({ lesson, status }) => (
         <LessonRow key={lesson.id} lesson={lesson} status={status} isDark={isDark} />
       ))}
+    </View>
+  );
+}
+
+interface RingCardsProps {
+  readonly consonantsLearned: number;
+  readonly vowelsLearned: number;
+  readonly isDark: boolean;
+}
+
+function RingCards({ consonantsLearned, vowelsLearned, isDark }: RingCardsProps): React.JSX.Element {
+  const cardStyle = [styles.ringCard, { backgroundColor: surfaceColor(isDark) }];
+
+  return (
+    <View style={styles.ringsRow}>
+      <View style={cardStyle}>
+        <ProgressRing
+          learned={consonantsLearned}
+          total={CONSONANTS.length}
+          label="자음 · Consonants"
+          color={blueAccent(isDark)}
+        />
+      </View>
+      <View style={cardStyle}>
+        <ProgressRing
+          learned={vowelsLearned}
+          total={VOWELS.length}
+          label="모음 · Vowels"
+          color={tealAccent(isDark)}
+        />
+      </View>
     </View>
   );
 }
@@ -287,37 +334,22 @@ export default function ProgressScreen(): React.JSX.Element {
       <Text
         style={[
           styles.title,
-          { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
+          { color: isDark ? COLORS.darkText : COLORS.lightText },
         ]}
         accessibilityRole="header"
       >
-        진행
-      </Text>
-      <Text
-        style={[
-          styles.subtitle,
-          { color: isDark ? COLORS.darkText : COLORS.lightText },
-        ]}
-      >
-        Progress
+        진행 상황
       </Text>
 
       <StreakCard streak={streak} isDark={isDark} />
 
-      <LessonsSection lessons={lessonStatuses} isDark={isDark} />
+      <RingCards
+        consonantsLearned={consonantsLearned}
+        vowelsLearned={vowelsLearned}
+        isDark={isDark}
+      />
 
-      <View style={styles.ringsRow}>
-        <ProgressRing
-          learned={consonantsLearned}
-          total={CONSONANTS.length}
-          label="자음"
-        />
-        <ProgressRing
-          learned={vowelsLearned}
-          total={VOWELS.length}
-          label="모음"
-        />
-      </View>
+      <LessonsSection lessons={lessonStatuses} isDark={isDark} />
 
       <ReviewQueueSection queue={reviewQueue} isDark={isDark} />
     </ScrollView>
@@ -333,128 +365,128 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   title: {
-    fontSize: 28,
-    fontFamily: 'NotoSansKR-Regular',
-    fontWeight: '700',
-    textAlign: 'center',
+    fontSize: 24,
+    fontFamily: KOREAN_FONT,
+    fontWeight: '900',
     marginTop: 20,
+    marginBottom: 16,
   },
-  subtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 24,
-    marginTop: 4,
-  },
-  card: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 24,
-  },
-  streakRow: {
+  streakCard: {
+    borderRadius: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    marginBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   streakFlame: {
-    fontSize: 32,
-  },
-  streakTextColumn: {
-    flex: 1,
-  },
-  streakTitle: {
-    fontSize: 14,
-    fontFamily: 'NotoSansKR-Regular',
-    fontWeight: '500',
+    fontSize: 30,
   },
   streakCount: {
-    fontSize: 24,
-    fontFamily: 'NotoSansKR-Regular',
-    fontWeight: '700',
-    marginTop: 2,
+    fontSize: 22,
+    fontFamily: KOREAN_FONT,
+    fontWeight: '900',
   },
   streakEmpty: {
     fontSize: 13,
-    fontFamily: 'NotoSansKR-Regular',
-    marginTop: 2,
+    fontFamily: KOREAN_FONT,
+    flexShrink: 1,
   },
   ringsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    marginBottom: 28,
+    gap: 14,
+    marginBottom: 24,
+  },
+  ringCard: {
+    flex: 1,
+    borderRadius: 20,
+    padding: 16,
+    alignItems: 'center',
   },
   section: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'NotoSansKR-Regular',
-    fontWeight: '700',
-  },
-  sectionSubtitle: {
-    fontSize: 13,
-    marginBottom: 12,
-    marginTop: 2,
+  sectionHeader: {
+    fontSize: 11,
+    fontFamily: KOREAN_FONT,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 10,
   },
   emptyQueueText: {
     fontSize: 14,
-    fontFamily: 'NotoSansKR-Regular',
+    fontFamily: KOREAN_FONT,
     textAlign: 'center',
     paddingVertical: 24,
   },
-  reviewRow: {
+  reviewCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 12,
+    borderRadius: 14,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    marginBottom: 8,
+  },
+  reviewGlyphTile: {
+    width: REVIEW_GLYPH_TILE_SIZE,
+    height: REVIEW_GLYPH_TILE_SIZE,
+    borderRadius: 11,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   reviewGlyph: {
     fontSize: REVIEW_GLYPH_SIZE,
-    fontFamily: 'NotoSansKR-Regular',
-    width: 44,
-    textAlign: 'center',
+    fontFamily: KOREAN_FONT,
   },
   reviewTextColumn: {
     flex: 1,
   },
   reviewName: {
-    fontSize: 15,
-    fontFamily: 'NotoSansKR-Regular',
-    fontWeight: '500',
-  },
-  reviewRomanization: {
     fontSize: 13,
+    fontFamily: KOREAN_FONT,
+    fontWeight: '700',
+  },
+  reviewDue: {
+    fontSize: 12,
+    fontFamily: KOREAN_FONT,
     marginTop: 1,
+  },
+  reviewChip: {
+    borderRadius: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 11,
+  },
+  reviewChipText: {
+    fontSize: 12,
+    fontFamily: KOREAN_FONT,
+    fontWeight: '700',
   },
   moreText: {
     fontSize: 13,
     textAlign: 'center',
-    paddingTop: 10,
+    paddingTop: 6,
   },
   lessonRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 16,
-    paddingVertical: 10,
+    paddingVertical: 9,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  lessonTextColumn: {
-    flex: 1,
-  },
   lessonLabel: {
-    fontSize: 15,
-    fontFamily: 'NotoSansKR-Regular',
+    fontSize: 14,
+    fontFamily: KOREAN_FONT,
     fontWeight: '500',
-  },
-  lessonChars: {
-    fontSize: LESSON_CHARS_GLYPH_SIZE,
-    fontFamily: 'NotoSansKR-Regular',
-    marginTop: 2,
+    flexShrink: 1,
   },
   lessonStatus: {
-    fontSize: 15,
-    fontFamily: 'NotoSansKR-Regular',
+    fontSize: 13,
+    fontFamily: KOREAN_FONT,
     fontWeight: '700',
   },
 });

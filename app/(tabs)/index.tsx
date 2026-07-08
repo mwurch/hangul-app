@@ -105,6 +105,7 @@ export default function StudyScreen(): React.JSX.Element {
       </View>
 
       <ScrollView
+        style={styles.scroll}
         contentContainerStyle={styles.path}
         showsVerticalScrollIndicator={false}
       >
@@ -127,6 +128,11 @@ export default function StudyScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  // A ScrollView needs a bounded height or content overflows without
+  // engaging scrolling.
+  scroll: {
     flex: 1,
   },
   header: {

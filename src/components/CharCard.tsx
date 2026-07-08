@@ -9,9 +9,10 @@ interface CharCardProps {
   readonly isLocked?: boolean;
 }
 
-const GLYPH_SIZE = 32;
-const CARD_SIZE = 80;
-const LOCKED_CONTENT_OPACITY = 0.35;
+const CARD_RADIUS = 15;
+const GLYPH_SIZE = 29;
+const ROMANIZATION_SIZE = 10.5;
+const LOCK_ICON_SIZE = 10;
 
 export function CharCard({
   jamo,
@@ -21,16 +22,36 @@ export function CharCard({
 }: CharCardProps): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
 
+  const cardTheme = isLocked
+    ? {
+        backgroundColor: isDark ? COLORS.darkBackground : COLORS.lockedBg,
+        borderColor: isDark ? COLORS.darkBorder : COLORS.lockedBorder,
+        borderStyle: 'dashed' as const,
+      }
+    : {
+        backgroundColor: isDark ? COLORS.darkSurface : COLORS.lightSurface,
+        borderColor: isDark ? COLORS.darkBorder : COLORS.lightBorder,
+        borderStyle: 'solid' as const,
+      };
+  const lockedTextColor = isDark ? COLORS.darkLockedText : COLORS.lockedText;
+  const glyphColor = isLocked
+    ? lockedTextColor
+    : isDark
+      ? COLORS.darkText
+      : COLORS.lightText;
+  const romanizationColor = isLocked
+    ? lockedTextColor
+    : isDark
+      ? COLORS.darkMutedText
+      : COLORS.mutedText;
+
   return (
     <Pressable
       onPress={() => onPress(jamo)}
       style={({ pressed }) => [
         styles.card,
-        {
-          backgroundColor: isDark ? COLORS.darkSurface : COLORS.lightBackground,
-          borderColor: isDark ? COLORS.darkBorder : COLORS.lightBorder,
-          opacity: pressed ? 0.7 : 1,
-        },
+        cardTheme,
+        { opacity: pressed ? 0.7 : 1 },
       ]}
       accessibilityRole="button"
       accessibilityState={isLocked ? { disabled: true } : undefined}
@@ -43,27 +64,31 @@ export function CharCard({
       <Text
         style={[
           styles.glyph,
-          { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
-          isLocked && styles.lockedContent,
+          isLocked ? styles.lockedGlyph : styles.unlockedGlyph,
+          { color: glyphColor },
         ]}
       >
         {jamo.char}
       </Text>
-      <Text
-        style={[
-          styles.romanization,
-          { color: isDark ? COLORS.mutedText : COLORS.lightText },
-          isLocked && styles.lockedContent,
-        ]}
-      >
+      <Text style={[styles.romanization, { color: romanizationColor }]}>
         {jamo.romanization}
       </Text>
       {isLocked ? (
-        <Text style={styles.lockIndicator} accessibilityElementsHidden>
+        <Text
+          style={[styles.lockIndicator, { color: lockedTextColor }]}
+          accessibilityElementsHidden
+        >
           🔒
         </Text>
       ) : (
-        hasProgress && <View style={styles.progressDot} />
+        hasProgress && (
+          <View
+            style={[
+              styles.progressDot,
+              { backgroundColor: isDark ? COLORS.darkTeal : COLORS.teal },
+            ]}
+          />
+        )
       )}
     </Pressable>
   );
@@ -71,21 +96,26 @@ export function CharCard({
 
 const styles = StyleSheet.create({
   card: {
-    width: CARD_SIZE,
-    height: CARD_SIZE,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
+    flex: 1,
+    aspectRatio: 1,
+    borderRadius: CARD_RADIUS,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    margin: 6,
   },
   glyph: {
     fontSize: GLYPH_SIZE,
     fontFamily: 'NotoSansKR-Regular',
     lineHeight: GLYPH_SIZE + 8,
   },
+  unlockedGlyph: {
+    fontWeight: '500',
+  },
+  lockedGlyph: {
+    fontWeight: '400',
+  },
   romanization: {
-    fontSize: 11,
+    fontSize: ROMANIZATION_SIZE,
     marginTop: 2,
   },
   progressDot: {
@@ -95,15 +125,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLORS.teal,
-  },
-  lockedContent: {
-    opacity: LOCKED_CONTENT_OPACITY,
   },
   lockIndicator: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    fontSize: 10,
+    top: 5,
+    right: 6,
+    fontSize: LOCK_ICON_SIZE,
   },
 });

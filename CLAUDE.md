@@ -135,7 +135,7 @@ This test must pass before any merge touching `hangul.ts`.
 
 ## Design system
 
-- **Palette:** Deep blue `#1A3F7A` (primary actions), teal `#0F6E56` (success/progress). Two accent colours only.
+- **Palette:** Deep blue `#1A3F7A` (primary actions), teal `#0F6E56` (success/progress). Two accent colours only. Dark mode uses lighter accent variants (`darkBlue #5B8AD6`, `darkTeal #37A98A`) — never raw primaryBlue/teal on dark surfaces (contrast). All tokens live in `src/theme/colors.ts`; no hex literals in components.
 - **Typography:** Noto Sans KR for all Korean glyphs. System sans-serif for UI labels.
 - **Glyph sizing:** Never below 28pt in study mode. 72pt on quiz cards.
 - **Layout:** Mobile-first. Every decision is made for a 390px wide screen held in one hand.

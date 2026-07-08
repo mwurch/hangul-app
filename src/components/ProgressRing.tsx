@@ -7,13 +7,18 @@ interface ProgressRingProps {
   readonly total: number;
   readonly label: string;
   readonly size?: number;
+  readonly color?: string;
 }
 
+const KOREAN_FONT = 'NotoSansKR-Regular';
 const DEFAULT_SIZE = 96;
 const STROKE_WIDTH = 8;
 const START_ANGLE_DEGREES = -90; // progress starts at 12 o'clock
 const MIN_PROGRESS = 0;
 const MAX_PROGRESS = 1;
+const COUNT_FONT_SIZE = 19;
+const TOTAL_FONT_SIZE = 11;
+const LABEL_FONT_SIZE = 13;
 
 function clampLearned(learned: number, total: number): number {
   if (total <= 0) {
@@ -34,6 +39,7 @@ export function ProgressRing({
   total,
   label,
   size = DEFAULT_SIZE,
+  color = COLORS.teal,
 }: ProgressRingProps): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
 
@@ -45,8 +51,9 @@ export function ProgressRing({
   const progress = computeProgress(learned, total);
   const strokeDashoffset = circumference * (MAX_PROGRESS - progress);
 
-  const trackColor = isDark ? COLORS.darkBorder : COLORS.lightBorder;
+  const trackColor = isDark ? COLORS.darkTrack : COLORS.lightBorder;
   const textColor = isDark ? COLORS.darkText : COLORS.lightText;
+  const mutedColor = isDark ? COLORS.darkMutedText : COLORS.mutedText;
 
   return (
     <View
@@ -76,7 +83,7 @@ export function ProgressRing({
             cx={center}
             cy={center}
             r={radius}
-            stroke={COLORS.teal}
+            stroke={color}
             strokeWidth={STROKE_WIDTH}
             strokeLinecap="round"
             fill="none"
@@ -88,13 +95,14 @@ export function ProgressRing({
         </Svg>
         <View style={styles.countOverlay} pointerEvents="none">
           <Text style={[styles.countText, { color: textColor }]}>
-            {`${safeLearned}/${total}`}
+            {safeLearned}
+            <Text style={[styles.countTotalText, { color: mutedColor }]}>
+              {` / ${total}`}
+            </Text>
           </Text>
         </View>
       </View>
-      <Text style={[styles.label, { color: isDark ? COLORS.mutedText : COLORS.lightText }]}>
-        {label}
-      </Text>
+      <Text style={[styles.label, { color }]}>{label}</Text>
     </View>
   );
 }
@@ -113,11 +121,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   countText: {
-    fontSize: 16,
+    fontSize: COUNT_FONT_SIZE,
+    fontWeight: '900',
+  },
+  countTotalText: {
+    fontSize: TOTAL_FONT_SIZE,
     fontWeight: '600',
   },
   label: {
-    fontSize: 13,
-    marginTop: 6,
+    fontSize: LABEL_FONT_SIZE,
+    fontFamily: KOREAN_FONT,
+    fontWeight: '700',
+    marginTop: 8,
   },
 });
