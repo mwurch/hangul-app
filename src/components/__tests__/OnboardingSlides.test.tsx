@@ -46,7 +46,7 @@ describe('OnboardingSlides', () => {
     const { getByText, getByLabelText } = render(<OnboardingSlides />);
 
     // Assert
-    expect(getByText('24개의 글자, 하나씩')).toBeTruthy();
+    expect(getByText('30개의 글자, 하나씩')).toBeTruthy();
     expect(getByText('자모를 모아 한 글자로')).toBeTruthy();
     expect(getByText('퀴즈로 확실하게')).toBeTruthy();
     expect(getByLabelText('Slide 1 of 3')).toBeTruthy();

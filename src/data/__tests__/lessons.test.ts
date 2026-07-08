@@ -4,10 +4,11 @@ import { ALL_JAMO } from '../jamo';
 
 // --- Constants ---
 
-const EXPECTED_LESSON_COUNT = 5;
+const EXPECTED_LESSON_COUNT = 6;
 const MIN_CHARS_PER_LESSON = 4;
 const MIN_DISTINCT_ROMANIZATIONS = 4;
-const CONSONANT_AND_VOWEL_LESSON_IDS = [1, 2, 3, 4];
+const CONSONANT_AND_VOWEL_LESSON_IDS = [1, 2, 3, 4, 5];
+const VOWEL_ONLY_LESSON_ID = 6;
 
 // --- Helpers ---
 
@@ -30,13 +31,13 @@ function typeFor(char: string): 'consonant' | 'vowel' {
 // --- LESSONS ---
 
 describe('LESSONS', () => {
-  test('has exactly 5 lessons', () => {
+  test('has exactly 6 lessons', () => {
     expect(LESSONS).toHaveLength(EXPECTED_LESSON_COUNT);
   });
 
-  test('ids are sequential 1..5', () => {
+  test('ids are sequential 1..6', () => {
     // Arrange
-    const expectedIds = [1, 2, 3, 4, 5];
+    const expectedIds = [1, 2, 3, 4, 5, 6];
 
     // Act
     const ids = LESSONS.map((lesson: Lesson) => lesson.id);
@@ -52,7 +53,7 @@ describe('LESSONS', () => {
     });
   });
 
-  test('lesson chars exactly partition ALL_JAMO (union equals the 24 chars)', () => {
+  test('lesson chars exactly partition ALL_JAMO (union equals the 30 chars)', () => {
     // Arrange
     const allJamoChars = ALL_JAMO.map((jamo) => jamo.char).sort();
 
@@ -94,7 +95,7 @@ describe('LESSONS', () => {
     });
   });
 
-  test('lessons 1-4 each contain at least one consonant and one vowel', () => {
+  test('lessons 1-5 each contain at least one consonant and one vowel', () => {
     CONSONANT_AND_VOWEL_LESSON_IDS.forEach((lessonId) => {
       // Arrange
       const lesson = LESSONS.find((entry) => entry.id === lessonId);
@@ -106,6 +107,20 @@ describe('LESSONS', () => {
       // Assert
       expect(types).toContain('consonant');
       expect(types).toContain('vowel');
+    });
+  });
+
+  test('lesson 6 contains only vowels', () => {
+    // Arrange
+    const lesson = LESSONS.find((entry) => entry.id === VOWEL_ONLY_LESSON_ID);
+    expect(lesson).toBeDefined();
+
+    // Act
+    const types = (lesson as Lesson).chars.map((char) => typeFor(char));
+
+    // Assert
+    types.forEach((type) => {
+      expect(type).toBe('vowel');
     });
   });
 
@@ -128,19 +143,25 @@ describe('LESSONS', () => {
         id: 3,
         title: 'Sounds',
         koreanTitle: '소리',
-        chars: ['ㅂ', 'ㅅ', 'ㅇ', 'ㅐ', 'ㅔ'],
+        chars: ['ㅂ', 'ㅅ', 'ㅇ', 'ㅓ', 'ㅐ'],
       },
       {
         id: 4,
         title: 'Aspirated',
         koreanTitle: '숨소리',
-        chars: ['ㅈ', 'ㅊ', 'ㅎ', 'ㅕ', 'ㅛ'],
+        chars: ['ㅈ', 'ㅊ', 'ㅎ', 'ㅔ', 'ㅕ'],
       },
       {
         id: 5,
-        title: 'Final',
-        koreanTitle: '마지막',
-        chars: ['ㅋ', 'ㅌ', 'ㅍ', 'ㅟ'],
+        title: 'Strong sounds',
+        koreanTitle: '센소리',
+        chars: ['ㅋ', 'ㅌ', 'ㅍ', 'ㅑ', 'ㅛ'],
+      },
+      {
+        id: 6,
+        title: 'Final vowels',
+        koreanTitle: '마지막 모음',
+        chars: ['ㅠ', 'ㅟ', 'ㅘ', 'ㅝ', 'ㅢ'],
       },
     ];
 

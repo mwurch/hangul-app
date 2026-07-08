@@ -88,7 +88,7 @@ describe('JamoKeyboard', () => {
     expect(buttons).toHaveLength(14);
   });
 
-  it('renders correct number of keys for vowels (10)', () => {
+  it('renders correct number of keys for vowels (16)', () => {
     // Arrange & Act
     const { getAllByRole } = render(
       <JamoKeyboard
@@ -100,7 +100,7 @@ describe('JamoKeyboard', () => {
 
     // Assert
     const buttons = getAllByRole('button');
-    expect(buttons).toHaveLength(10);
+    expect(buttons).toHaveLength(16);
   });
 
   it('does not call onSelect for characters not tapped', () => {

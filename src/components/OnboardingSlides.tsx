@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../theme/colors';
+import { ALL_JAMO } from '../data/jamo';
 import { useSettingsStore } from '../store/settings.store';
 
 // --- Constants ---
@@ -48,7 +49,7 @@ const SLIDES: readonly SlideContent[] = [
     key: 'learn',
     glyph: '가',
     isGlyphAccent: false,
-    title: '24개의 글자, 하나씩',
+    title: `${ALL_JAMO.length}개의 글자, 하나씩`,
     subtitle: 'Read Hangul — one letter at a time.',
   },
   {

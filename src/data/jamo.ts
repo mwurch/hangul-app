@@ -228,6 +228,30 @@ export const VOWELS: readonly Jamo[] = [
     },
   },
   {
+    char: 'ㅑ',
+    type: 'vowel',
+    romanization: 'ya',
+    koreanName: '야',
+    audioFile: 'ya.mp3',
+    exampleWord: {
+      korean: '야구',
+      english: 'baseball',
+      audioFile: 'yagu.mp3',
+    },
+  },
+  {
+    char: 'ㅓ',
+    type: 'vowel',
+    romanization: 'eo',
+    koreanName: '어',
+    audioFile: 'eo.mp3',
+    exampleWord: {
+      korean: '어머니',
+      english: 'mother',
+      audioFile: 'eomeoni.mp3',
+    },
+  },
+  {
     char: 'ㅔ',
     type: 'vowel',
     romanization: 'e',
@@ -264,6 +288,18 @@ export const VOWELS: readonly Jamo[] = [
     },
   },
   {
+    char: 'ㅘ',
+    type: 'vowel',
+    romanization: 'wa',
+    koreanName: '와',
+    audioFile: 'wa.mp3',
+    exampleWord: {
+      korean: '과일',
+      english: 'fruit',
+      audioFile: 'gwail.mp3',
+    },
+  },
+  {
     char: 'ㅛ',
     type: 'vowel',
     romanization: 'yo',
@@ -288,6 +324,18 @@ export const VOWELS: readonly Jamo[] = [
     },
   },
   {
+    char: 'ㅝ',
+    type: 'vowel',
+    romanization: 'wo',
+    koreanName: '워',
+    audioFile: 'wo.mp3',
+    exampleWord: {
+      korean: '병원',
+      english: 'hospital',
+      audioFile: 'byeongwon.mp3',
+    },
+  },
+  {
     char: 'ㅟ',
     type: 'vowel',
     romanization: 'wi',
@@ -300,6 +348,18 @@ export const VOWELS: readonly Jamo[] = [
     },
   },
   {
+    char: 'ㅠ',
+    type: 'vowel',
+    romanization: 'yu',
+    koreanName: '유',
+    audioFile: 'yu.mp3',
+    exampleWord: {
+      korean: '유리',
+      english: 'glass',
+      audioFile: 'yuri.mp3',
+    },
+  },
+  {
     char: 'ㅡ',
     type: 'vowel',
     romanization: 'eu',
@@ -309,6 +369,18 @@ export const VOWELS: readonly Jamo[] = [
       korean: '으른',
       english: 'adult (colloquial)',
       audioFile: 'eureun.mp3',
+    },
+  },
+  {
+    char: 'ㅢ',
+    type: 'vowel',
+    romanization: 'ui',
+    koreanName: '의',
+    audioFile: 'ui.mp3',
+    exampleWord: {
+      korean: '의사',
+      english: 'doctor',
+      audioFile: 'uisa.mp3',
     },
   },
   {

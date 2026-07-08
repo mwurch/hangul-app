@@ -5,8 +5,8 @@ account owner; items marked 🤖 are automatable from this repo.
 
 ## 1. Blockers before any store build
 
-- [ ] 🧑 **Replace the 48 placeholder MP3s** in `assets/audio/` with real Korean
-      pronunciation recordings (24 자모 + 24 example words, MP3 128kbps,
+- [ ] 🧑 **Replace the 60 placeholder MP3s** in `assets/audio/` with real Korean
+      pronunciation recordings (30 자모 + 30 example words, MP3 128kbps,
       filenames must match `src/data/jamo.ts` exactly; target < 4MB total).
 - [ ] 🧑 Review app icon / adaptive icon / splash icon in `assets/` — currently
       template-generated; replace with final artwork if desired.
