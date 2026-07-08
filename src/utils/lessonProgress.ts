@@ -63,3 +63,70 @@ export function getCurrentLesson(progress: ProgressMap): Lesson {
   );
   return firstIncomplete ?? (LESSONS[LESSONS.length - 1] as Lesson);
 }
+
+/** Per-lesson display state derived from progress. */
+export type LessonStatus =
+  | { readonly kind: 'complete' }
+  | { readonly kind: 'unlocked'; readonly correctChars: number }
+  | { readonly kind: 'locked' };
+
+export interface LessonWithStatus {
+  readonly lesson: Lesson;
+  readonly status: LessonStatus;
+}
+
+/** Number of lesson chars answered correctly at least LESSON_COMPLETE_THRESHOLD times. */
+export function countCorrectChars(
+  lesson: Lesson,
+  progress: ProgressMap,
+): number {
+  return lesson.chars.filter((char) => {
+    const entry = progress[char];
+    return (
+      entry !== undefined && entry.correctCount >= LESSON_COMPLETE_THRESHOLD
+    );
+  }).length;
+}
+
+function deriveLessonStatus(
+  lesson: Lesson,
+  unlockedIds: ReadonlySet<number>,
+  progress: ProgressMap,
+): LessonStatus {
+  if (isLessonComplete(lesson, progress)) {
+    return { kind: 'complete' };
+  }
+  if (unlockedIds.has(lesson.id)) {
+    return {
+      kind: 'unlocked',
+      correctChars: countCorrectChars(lesson, progress),
+    };
+  }
+  return { kind: 'locked' };
+}
+
+/** All lessons in curriculum order, each paired with its derived status. */
+export function getLessonStatuses(
+  progress: ProgressMap,
+): readonly LessonWithStatus[] {
+  const unlockedIds = new Set(getUnlockedLessonIds(progress));
+  return LESSONS.map((lesson) => ({
+    lesson,
+    status: deriveLessonStatus(lesson, unlockedIds, progress),
+  }));
+}
+
+/** Screen-reader label for a lesson row, covering all three status kinds. */
+export function describeLessonForAccessibility(
+  lesson: Lesson,
+  status: LessonStatus,
+): string {
+  const base = `Lesson ${lesson.id}, ${lesson.koreanTitle}`;
+  if (status.kind === 'complete') {
+    return `${base}, completed`;
+  }
+  if (status.kind === 'unlocked') {
+    return `${base}, ${status.correctChars} of ${lesson.chars.length} correct`;
+  }
+  return `${base}, locked`;
+}

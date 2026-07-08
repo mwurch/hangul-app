@@ -1,94 +1,65 @@
-import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useColorScheme,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { COLORS } from '../../src/theme/colors';
-import { type Jamo, ALL_JAMO, CONSONANTS, VOWELS } from '../../src/data/jamo';
+import { ALL_JAMO } from '../../src/data/jamo';
+import { LESSONS, type Lesson } from '../../src/data/lessons';
 import { useProgressStore } from '../../src/store/progress.store';
 import {
   getCurrentLesson,
-  getLessonForChar,
+  getLessonStatuses,
   getUnlockedChars,
+  type LessonStatus,
 } from '../../src/utils/lessonProgress';
-import { CharCard } from '../../src/components/CharCard';
-import { FilterTabs, type JamoFilter } from '../../src/components/FilterTabs';
-import { JamoDetailPanel } from '../../src/components/JamoDetailPanel';
+import { LessonNode } from '../../src/components/LessonNode';
 
-const GRID_COLUMNS = 4;
+const PRESSED_OPACITY = 0.7;
 
-function getFilteredJamo(filter: JamoFilter): readonly Jamo[] {
-  switch (filter) {
-    case 'consonant':
-      return CONSONANTS;
-    case 'vowel':
-      return VOWELS;
-    default:
-      return ALL_JAMO;
-  }
-}
-
-function getFilterLabel(filter: JamoFilter): string {
-  switch (filter) {
-    case 'consonant':
-      return '14 Consonants';
-    case 'vowel':
-      return '10 Vowels';
-    default:
-      return '24 Characters';
-  }
-}
-
-function showLockedAlert(char: string): void {
-  const lesson = getLessonForChar(char);
-  if (lesson === undefined) {
+function showLockedAlert(lesson: Lesson): void {
+  const previousLesson = LESSONS.find(
+    (candidate) => candidate.id === lesson.id - 1,
+  );
+  if (previousLesson === undefined) {
     return;
   }
   Alert.alert(
     '🔒 잠김',
-    `Lesson ${lesson.id} (${lesson.koreanTitle})을 완료하면 열려요\nComplete Lesson ${lesson.id} to unlock`,
+    `Lesson ${previousLesson.id} (${previousLesson.koreanTitle})을 완료하면 열려요\nComplete Lesson ${previousLesson.id} to unlock`,
   );
 }
 
 export default function StudyScreen(): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
-  const getProgress = useProgressStore((s) => s.getProgress);
   const progress = useProgressStore((s) => s.progress);
 
-  const [filter, setFilter] = useState<JamoFilter>('all');
-  const [selectedJamo, setSelectedJamo] = useState<Jamo | null>(null);
-
-  const filteredJamo = useMemo(() => getFilteredJamo(filter), [filter]);
+  const lessonStatuses = useMemo(() => getLessonStatuses(progress), [progress]);
   const unlockedChars = useMemo(() => getUnlockedChars(progress), [progress]);
   const currentLesson = useMemo(() => getCurrentLesson(progress), [progress]);
 
-  const handleCardPress = useCallback(
-    (jamo: Jamo) => {
-      if (!unlockedChars.has(jamo.char)) {
-        showLockedAlert(jamo.char);
+  const handleLessonPress = useCallback(
+    (lesson: Lesson, status: LessonStatus) => {
+      if (status.kind === 'locked') {
+        showLockedAlert(lesson);
         return;
       }
-      setSelectedJamo(jamo);
+      router.push(`/lesson/${lesson.id}`);
     },
-    [unlockedChars],
+    [],
   );
 
-  const handleCloseDetail = useCallback(() => {
-    setSelectedJamo(null);
+  const handleAllCharactersPress = useCallback(() => {
+    router.push('/all-characters');
   }, []);
-
-  const renderItem = useCallback(
-    ({ item }: { readonly item: Jamo }) => (
-      <CharCard
-        jamo={item}
-        hasProgress={getProgress(item.char) !== undefined}
-        onPress={handleCardPress}
-        isLocked={!unlockedChars.has(item.char)}
-      />
-    ),
-    [getProgress, handleCardPress, unlockedChars],
-  );
-
-  const keyExtractor = useCallback((item: Jamo) => item.char, []);
 
   return (
     <View
@@ -101,33 +72,55 @@ export default function StudyScreen(): React.JSX.Element {
       ]}
     >
       <View style={styles.header}>
-        <Text
-          style={[
-            styles.title,
-            { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
-          ]}
-          accessibilityRole="header"
-        >
-          자모 학습
-        </Text>
+        <View style={styles.headerRow}>
+          <Text
+            style={[
+              styles.title,
+              { color: isDark ? COLORS.darkText : COLORS.primaryBlue },
+            ]}
+            accessibilityRole="header"
+          >
+            자모 학습
+          </Text>
+          <Pressable
+            onPress={handleAllCharactersPress}
+            accessibilityRole="button"
+            accessibilityLabel="All characters"
+            style={({ pressed }) => [
+              styles.allCharactersPill,
+              {
+                borderColor: isDark ? COLORS.darkBorder : COLORS.lightBorder,
+                opacity: pressed ? PRESSED_OPACITY : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.allCharactersLabel, { color: COLORS.mutedText }]}>
+              전체 보기
+            </Text>
+          </Pressable>
+        </View>
         <Text style={[styles.subtitle, { color: COLORS.mutedText }]}>
-          {`${getFilterLabel(filter)} · Lesson ${currentLesson.id} · ${unlockedChars.size}/${ALL_JAMO.length} unlocked`}
+          {`Lesson ${currentLesson.id} · ${unlockedChars.size}/${ALL_JAMO.length} unlocked`}
         </Text>
       </View>
 
-      <FilterTabs activeFilter={filter} onFilterChange={setFilter} />
-
-      <FlatList
-        data={filteredJamo}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        numColumns={GRID_COLUMNS}
-        contentContainerStyle={styles.grid}
-        columnWrapperStyle={styles.gridRow}
+      <ScrollView
+        contentContainerStyle={styles.path}
         showsVerticalScrollIndicator={false}
-      />
-
-      <JamoDetailPanel jamo={selectedJamo} onClose={handleCloseDetail} />
+      >
+        {lessonStatuses.map(({ lesson, status }, index) => (
+          <LessonNode
+            key={lesson.id}
+            lesson={lesson}
+            status={status}
+            isCurrent={
+              lesson.id === currentLesson.id && status.kind === 'unlocked'
+            }
+            showConnector={index > 0}
+            onPress={() => handleLessonPress(lesson, status)}
+          />
+        ))}
+      </ScrollView>
     </View>
   );
 }
@@ -141,20 +134,33 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 4,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   title: {
     fontSize: 28,
     fontWeight: '700',
+    fontFamily: 'NotoSansKR-Regular',
+  },
+  allCharactersPill: {
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  allCharactersLabel: {
+    fontSize: 15,
     fontFamily: 'NotoSansKR-Regular',
   },
   subtitle: {
     fontSize: 14,
     marginTop: 4,
   },
-  grid: {
-    paddingHorizontal: 14,
-    paddingBottom: 24,
-  },
-  gridRow: {
-    justifyContent: 'center',
+  path: {
+    alignItems: 'center',
+    paddingTop: 24,
+    paddingBottom: 32,
   },
 });
