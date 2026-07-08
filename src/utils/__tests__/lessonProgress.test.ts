@@ -157,7 +157,7 @@ describe('getUnlockedLessonIds', () => {
     const unlockedIds = getUnlockedLessonIds(progress);
 
     // Assert
-    expect(unlockedIds).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(unlockedIds).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(unlockedIds).toEqual(LESSONS.map((lesson) => lesson.id));
   });
 });
@@ -223,7 +223,7 @@ describe('getLessonForChar', () => {
 
   test('returns undefined for an unknown char', () => {
     // Act
-    const lesson = getLessonForChar('ㅉ');
+    const lesson = getLessonForChar('ㅱ');
 
     // Assert
     expect(lesson).toBeUndefined();
@@ -255,7 +255,7 @@ describe('getCurrentLesson', () => {
     expect(current).toBe(LESSON_2);
   });
 
-  test('all lessons complete returns the last lesson (lesson 6)', () => {
+  test('all lessons complete returns the last lesson (lesson 8)', () => {
     // Arrange
     const progress = completedLessons(LESSONS);
 
@@ -264,7 +264,7 @@ describe('getCurrentLesson', () => {
 
     // Assert
     expect(current).toBe(LAST_LESSON);
-    expect(current.id).toBe(6);
+    expect(current.id).toBe(8);
   });
 });
 
@@ -378,7 +378,7 @@ describe('getLessonStatuses', () => {
     const statuses = getLessonStatuses(progress);
 
     // Assert
-    expect(statuses).toHaveLength(6);
+    expect(statuses).toHaveLength(8);
     statuses.forEach(({ status }: LessonWithStatus) => {
       expect(status).toEqual({ kind: 'complete' });
     });
