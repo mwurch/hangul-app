@@ -155,9 +155,16 @@ export default function LessonDetailScreen(): React.JSX.Element {
     setSelectedJamo(null);
   }, []);
 
+  const lessonId = lesson?.id;
   const handlePracticePress = useCallback(() => {
-    router.navigate('/quiz');
-  }, [router]);
+    if (lessonId === undefined) {
+      return;
+    }
+    router.navigate({
+      pathname: '/quiz',
+      params: { lesson: String(lessonId) },
+    });
+  }, [router, lessonId]);
 
   // Invalid deep link (bad id) or locked lesson — back to the Study tab.
   if (lesson === undefined || !unlockedLessonIds.includes(lesson.id)) {
@@ -250,7 +257,7 @@ export default function LessonDetailScreen(): React.JSX.Element {
             },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Practice all unlocked characters in quiz"
+          accessibilityLabel={`Practice lesson ${lesson.id} characters in quiz`}
         >
           <Text style={[styles.ctaKorean, { color: ctaTextColor }]}>
             퀴즈로 연습하기

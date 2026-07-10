@@ -4,6 +4,9 @@ import type { QuizQuestion } from '../store/quiz.store';
 /** Default number of questions in a full quiz session. */
 export const QUIZ_LENGTH = 20;
 
+/** Questions in a lesson-scoped quiz: each of the 5 chars appears twice. */
+export const LESSON_QUIZ_LENGTH = 10;
+
 /** Options shown per question (1 correct answer + 3 distractors). */
 const OPTION_COUNT = 4;
 

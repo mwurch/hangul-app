@@ -3,12 +3,13 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 );
 
 const mockUseLocalSearchParams = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('expo-router', () => {
   const { Text } = require('react-native');
   return {
     useLocalSearchParams: () => mockUseLocalSearchParams(),
-    useRouter: () => ({ navigate: jest.fn(), push: jest.fn() }),
+    useRouter: () => ({ navigate: mockNavigate, push: jest.fn() }),
     Redirect: ({ href }: { readonly href: string }) => (
       <Text testID="redirect">{href}</Text>
     ),
@@ -55,6 +56,7 @@ describe('LessonDetailScreen route guards', () => {
     useProgressStore.setState({ progress: {}, streak: 0, lastStudyDate: 0 });
     mockUseLocalSearchParams.mockReset();
     mockPlaySound.mockClear();
+    mockNavigate.mockClear();
   });
 
   test('audio button plays sound without opening the detail panel', () => {
@@ -130,16 +132,18 @@ describe('LessonDetailScreen route guards', () => {
     expect(getByText(LESSONS[1]!.chars[0]!)).toBeTruthy();
   });
 
-  test('quiz CTA carries the honest all-unlocked accessibility label', () => {
+  test('quiz CTA opens the quiz scoped to this lesson', () => {
     // Arrange
     mockUseLocalSearchParams.mockReturnValue({ id: '1' });
-
-    // Act
     const { getByLabelText } = render(<LessonDetailScreen />);
 
+    // Act
+    fireEvent.press(getByLabelText('Practice lesson 1 characters in quiz'));
+
     // Assert
-    expect(
-      getByLabelText('Practice all unlocked characters in quiz'),
-    ).toBeTruthy();
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/quiz',
+      params: { lesson: '1' },
+    });
   });
 });

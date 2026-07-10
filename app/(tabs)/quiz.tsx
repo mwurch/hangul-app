@@ -8,17 +8,20 @@ import {
   useColorScheme,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { COLORS } from '../../src/theme/colors';
 import { ALL_JAMO } from '../../src/data/jamo';
+import { type Lesson, LESSONS } from '../../src/data/lessons';
 import { QuizCard } from '../../src/components/QuizCard';
 import { QuizSummary } from '../../src/components/QuizSummary';
 import { useQuizStore, type QuizQuestion } from '../../src/store/quiz.store';
 import { useProgressStore } from '../../src/store/progress.store';
 import {
-  getCurrentLesson,
   getUnlockedChars,
+  getUnlockedLessonIds,
 } from '../../src/utils/lessonProgress';
 import {
+  LESSON_QUIZ_LENGTH,
   QUIZ_LENGTH,
   generateQuizQuestions,
 } from '../../src/utils/quizGenerator';
@@ -45,17 +48,38 @@ function getPromptForQuestion(question: QuizQuestion): string {
   return jamo?.romanization ?? question.char;
 }
 
+/**
+ * Resolves the optional `lesson` route param into a lesson-scoped quiz.
+ * Returns undefined (global quiz over all unlocked chars) when the param
+ * is missing, malformed, or names a lesson that is not unlocked yet.
+ */
+function resolveScopedLesson(
+  lessonParam: string | undefined,
+  unlockedLessonIds: readonly number[],
+): Lesson | undefined {
+  if (lessonParam === undefined || !/^\d+$/.test(lessonParam)) {
+    return undefined;
+  }
+  const id = Number.parseInt(lessonParam, 10);
+  if (!unlockedLessonIds.includes(id)) {
+    return undefined;
+  }
+  return LESSONS.find((lesson) => lesson.id === id);
+}
+
 interface StartViewProps {
   readonly isDark: boolean;
-  readonly lessonId: number;
+  readonly scopeLabel: string;
   readonly poolSize: number;
+  readonly questionCount: number;
   readonly onStart: () => void;
 }
 
 function StartView({
   isDark,
-  lessonId,
+  scopeLabel,
   poolSize,
+  questionCount,
   onStart,
 }: StartViewProps): React.JSX.Element {
   return (
@@ -70,7 +94,7 @@ function StartView({
         퀴즈
       </Text>
       <Text style={[styles.subtitle, { color: COLORS.mutedText }]}>
-        {`Lesson ${lessonId} · ${poolSize} characters · ${QUIZ_LENGTH} questions`}
+        {`${scopeLabel} · ${poolSize} characters · ${questionCount} questions`}
       </Text>
       <Pressable
         testID="quiz-start-button"
@@ -80,7 +104,7 @@ function StartView({
           { opacity: pressed ? 0.8 : 1 },
         ]}
         accessibilityRole="button"
-        accessibilityLabel={`Start quiz with ${QUIZ_LENGTH} questions`}
+        accessibilityLabel={`Start quiz with ${questionCount} questions`}
       >
         <Text style={styles.startKorean}>시작하기</Text>
         <Text style={styles.startEnglish}>Start</Text>
@@ -92,6 +116,8 @@ function StartView({
 export default function QuizScreen(): React.JSX.Element {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
+  const { lesson: lessonParam } = useLocalSearchParams<{ lesson?: string }>();
+  const router = useRouter();
 
   const questions = useQuizStore((state) => state.questions);
   const currentIndex = useQuizStore((state) => state.currentIndex);
@@ -105,11 +131,24 @@ export default function QuizScreen(): React.JSX.Element {
   const progress = useProgressStore((state) => state.progress);
 
   const unlockedChars = useMemo(() => getUnlockedChars(progress), [progress]);
-  const currentLesson = useMemo(() => getCurrentLesson(progress), [progress]);
-  const quizPool = useMemo(
-    () => ALL_JAMO.filter((j) => unlockedChars.has(j.char)),
-    [unlockedChars],
+  const unlockedLessonIds = useMemo(
+    () => getUnlockedLessonIds(progress),
+    [progress],
   );
+  const scopedLesson = useMemo(
+    () => resolveScopedLesson(lessonParam, unlockedLessonIds),
+    [lessonParam, unlockedLessonIds],
+  );
+  const quizPool = useMemo(() => {
+    if (scopedLesson !== undefined) {
+      return ALL_JAMO.filter((j) => scopedLesson.chars.includes(j.char));
+    }
+    return ALL_JAMO.filter((j) => unlockedChars.has(j.char));
+  }, [scopedLesson, unlockedChars]);
+  const quizLength =
+    scopedLesson === undefined ? QUIZ_LENGTH : LESSON_QUIZ_LENGTH;
+  const scopeLabel =
+    scopedLesson === undefined ? 'All unlocked' : `Lesson ${scopedLesson.id}`;
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -122,15 +161,29 @@ export default function QuizScreen(): React.JSX.Element {
     };
   }, []);
 
+  // Arriving from a lesson's practice CTA discards any half-finished global
+  // quiz so the start screen reflects the requested lesson scope.
+  const scopedLessonId = scopedLesson?.id;
+  useEffect(() => {
+    if (scopedLessonId !== undefined) {
+      setSelectedAnswer(null);
+      resetQuiz();
+    }
+  }, [scopedLessonId, resetQuiz]);
+
   const handleStart = useCallback((): void => {
     setSelectedAnswer(null);
-    startQuiz(generateQuizQuestions(quizPool, QUIZ_LENGTH));
-  }, [startQuiz, quizPool]);
+    startQuiz(generateQuizQuestions(quizPool, quizLength));
+  }, [startQuiz, quizPool, quizLength]);
 
   const handleDone = useCallback((): void => {
     setSelectedAnswer(null);
     resetQuiz();
-  }, [resetQuiz]);
+    if (scopedLessonId !== undefined) {
+      // Drop the lesson scope so the tab returns to the global quiz next time.
+      router.setParams({ lesson: '' });
+    }
+  }, [resetQuiz, scopedLessonId, router]);
 
   const currentQuestion = questions[currentIndex];
 
@@ -194,8 +247,9 @@ export default function QuizScreen(): React.JSX.Element {
       ) : (
         <StartView
           isDark={isDark}
-          lessonId={currentLesson.id}
+          scopeLabel={scopeLabel}
           poolSize={quizPool.length}
+          questionCount={quizLength}
           onStart={handleStart}
         />
       )}
