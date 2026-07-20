@@ -6,14 +6,14 @@
 
 ## What this app is
 
-A focused, beautiful mobile app that teaches complete beginners the Korean Hangul alphabet — from individual letters (자모) through syllable construction. Sold as a one-time 2.99€ purchase on the App Store and Google Play. No subscription. No ads. No grammar. One thing, done extremely well.
+A focused, beautiful mobile app that teaches complete beginners the Korean Hangul alphabet — from individual letters (자모) through syllable construction. A free download on the App Store and Google Play. No subscription. No ads. No grammar. One thing, done extremely well.
 
 ---
 
 ## Red lines — never cross these
 
 - **No grammar, no vocabulary lists, no full sentences.** The app teaches reading, not speaking.
-- **No subscription model and no in-app purchases.** One-time paid download only.
+- **No subscription model and no in-app purchases.** Free download only.
 - **No ads. Ever.**
 - **Never break the syllable composition formula.** The canonical test: `ㅎ (initial 18) + ㅏ (vowel 0) + ㄴ (final 4)` must produce `한` (`0xD55C`). Run the unit test in `hangul.ts` before any merge that touches syllable logic.
 - **Never load Noto Sans KR from a CDN at runtime.** The font must be bundled with the app.
@@ -202,7 +202,7 @@ Uses the **SM-2 algorithm**. After each quiz answer, update `interval` and `ease
 | 5 | Quiz tab: QuizCard, 20-question flow, feedback animation, score summary — **DONE** (SM-2 wiring deferred to Phase 6; feedback animation uses built-in RN Animated, not Reanimated) |
 | 6 | Progress & SRS: Progress tab UI, streak, SM-2 wired to quiz, review queue — **DONE** (learned = 3+ correct answers; SM-2 store updates persist to AsyncStorage on every quiz answer) |
 | 7 | Polish: onboarding, haptics, dark mode, accessibility audit, performance — **DONE** (on-device performance validation still pending: cold-start and bundle-size targets need physical devices) |
-| 8 | Ship: store assets, EAS Build, App Review submission, 2.99€ pricing |
+| 8 | Ship: store assets, EAS Build, App Review submission, free pricing |
 
 ---
 
